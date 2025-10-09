@@ -1,0 +1,118 @@
+<div class="users-container">
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">All Users</h1>
+            <p class="page-description">View users in a single table. Use the action button to manage assignments and
+                account status.</p>
+        </div>
+        <div class="user-count">
+            <span nz-icon nzType="team" nzTheme="outline"></span>
+            <span>Users: {{ totalUsers }}</span>
+        </div>
+    </div>
+
+    <div class="directory-card">
+        <h2 class="directory-title">Users Directory</h2>
+
+        <div class="filter-section">
+            <div class="filter-item search-filter">
+                <label>Search users</label>
+                <nz-input-group [nzPrefix]="prefixIconSearch">
+                    <input type="text" nz-input placeholder="Name, email, or role" [(ngModel)]="searchText" />
+                </nz-input-group>
+                <ng-template #prefixIconSearch>
+                    <span nz-icon nzType="search"></span>
+                </ng-template>
+            </div>
+
+            <div class="filter-item role-filter">
+                <label>Role</label>
+                <nz-select [(ngModel)]="selectedRole" nzPlaceHolder="All roles" nzSuffixIcon="down">
+                    <nz-option nzValue="all" nzLabel="All roles"></nz-option>
+                    <nz-option nzValue="Admin" nzLabel="Admin"></nz-option>
+                    <nz-option nzValue="Manager" nzLabel="Manager"></nz-option>
+                    <nz-option nzValue="Supervisor" nzLabel="Supervisor"></nz-option>
+                    <nz-option nzValue="Operator" nzLabel="Operator"></nz-option>
+                </nz-select>
+            </div>
+
+            <div class="filter-item status-filter">
+                <label>Status</label>
+                <nz-select [(ngModel)]="selectedStatus" nzPlaceHolder="Any status" nzSuffixIcon="down">
+                    <nz-option nzValue="all" nzLabel="Any status"></nz-option>
+                    <nz-option nzValue="Active" nzLabel="Active"></nz-option>
+                    <nz-option nzValue="Inactive" nzLabel="Inactive"></nz-option>
+                    <nz-option nzValue="Suspended" nzLabel="Suspended"></nz-option>
+                </nz-select>
+            </div>
+        </div>
+
+        <nz-table #userTable [nzData]="filteredUsers" [nzShowPagination]="false" [nzBordered]="false">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let user of userTable.data">
+                    <td>
+                        <div class="user-cell">
+                            <nz-avatar [nzText]="getUserInitials(user.name)"
+                                [ngStyle]="{'background-color': getAvatarColor(user.name)}"
+                                nzSize="default"></nz-avatar>
+                            <span class="user-name">{{ user.name }}</span>
+                        </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        <nz-tag [nzColor]="getStatusColor(user.status)">
+                            {{ user.status }}
+                        </nz-tag>
+                    </td>
+                    <td class="action-cell">
+                        <button nz-button nzType="text" nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
+                            <span nz-icon nzType="more" nzTheme="outline"></span>
+                        </button>
+                        <nz-dropdown-menu #menu="nzDropdownMenu">
+                            <ul nz-menu>
+                                <li nz-menu-item (click)="onUserAction('devices', user)">
+                                    <span nz-icon nzType="eye" nzTheme="outline"></span>
+                                    See Assigned Devices
+                                </li>
+                                <li nz-menu-item (click)="onUserAction('edit', user)">
+                                    <span nz-icon nzType="edit" nzTheme="outline"></span>
+                                    Edit User
+                                </li>
+                                <li nz-menu-item (click)="onUserAction('view', user)">
+                                    <span nz-icon nzType="eye" nzTheme="outline"></span>
+                                    View Details
+                                </li>
+                                <li nz-menu-divider></li>
+                                <li nz-menu-item (click)="onUserAction('suspend', user)"
+                                    *ngIf="user.status === 'Active'">
+                                    <span nz-icon nzType="stop" nzTheme="outline"></span>
+                                    Suspend User
+                                </li>
+                                <li nz-menu-item (click)="onUserAction('activate', user)"
+                                    *ngIf="user.status !== 'Active'">
+                                    <span nz-icon nzType="check-circle" nzTheme="outline"></span>
+                                    Activate User
+                                </li>
+                                <li nz-menu-divider></li>
+                                <li nz-menu-item (click)="onUserAction('delete', user)" class="danger-item">
+                                    <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                    Delete User
+                                </li>
+                            </ul>
+                        </nz-dropdown-menu>
+                    </td>
+                </tr>
+            </tbody>
+        </nz-table>
+    </div>
+</div>

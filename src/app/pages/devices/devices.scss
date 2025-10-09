@@ -1,0 +1,154 @@
+.devices-container {
+  background: #f9fbfd;
+  padding: 24px;
+  border-radius: 12px;
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      color: #0b1a33;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: #6b7b93;
+      font-size: 14px;
+    }
+
+    .add-btn {
+      background-color: #1677ff;
+      border: none;
+      height: 38px;
+      font-weight: 500;
+      color: #fff;
+      border-radius: 20px;
+    }
+  }
+
+  .filters-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+
+    .filters-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      button[nz-button] {
+        background: #f5f9ff;
+        border: 1px solid #dbe4f3;
+        color: #0b1a33;
+        font-weight: 500;
+      }
+
+      nz-select {
+        min-width: 200px;
+
+        ::ng-deep .ant-select-selector {
+          border-radius: 20px !important;
+          background: #f5f9ff !important;
+          border: 1px solid #dbe4f3 !important;
+          height: 38px !important;
+          display: flex;
+          align-items: center;
+        }
+
+        ::ng-deep .ant-select-selection-item {
+          color: #0b1a33 !important;
+          font-weight: 500;
+        }
+      }
+
+      .search-input {
+        flex: 1;
+        min-width: 240px;
+
+        input {
+          border-radius: 20px;
+          padding: 6px 14px;
+        }
+      }
+    }
+  }
+
+  nz-table {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+
+    th {
+      background: #e9f3ff;
+      font-weight: 600;
+      color: #0b1a33;
+    }
+
+    td {
+      vertical-align: middle;
+      font-size: 15px;
+      color: #1c1c1c;
+    }
+
+    .type-btn {
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      cursor: default;
+      border-radius: 16px;
+      padding: 4px 10px;
+    }
+
+    .bp-type {
+      background: #eaf4ff;
+      color: #1677ff;
+    }
+
+    .gluco-type {
+      background: #f3f8f0;
+      color: #3ca374;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+
+      .edit-btn,
+      .view-btn {
+        background: #eaf4ff;
+        border: none;
+        font-size: 13px;
+        color: #1677ff;
+        font-weight: 500;
+        border-radius: 16px;
+      }
+
+      .view-btn {
+        background: #f5f9ff;
+      }
+    }
+  }
+
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #6b7b93;
+
+    nz-pagination {
+      margin: 0;
+    }
+  }
+}

@@ -1,0 +1,73 @@
+<div class="devices-container">
+    <div class="header-section">
+        <div>
+            <h2>All Devices</h2>
+            <p>Manage blood pressure monitors and glucometers. Use filters to refine.</p>
+        </div>
+    </div>
+
+    <div class="filters-card">
+        <div class="filters-row">
+            <nz-select [(ngModel)]="selectedDeviceType" (ngModelChange)="onDeviceTypeChange($event)" nzAllowClear
+                nzPlaceHolder="Select Device Type" class="filter-select">
+                <nz-option nzLabel="All" nzValue="All"></nz-option>
+                <nz-option nzLabel="Blood Pressure" nzValue="Blood Pressure"></nz-option>
+                <nz-option nzLabel="Glucometer" nzValue="Glucometer"></nz-option>
+            </nz-select>
+
+            <nz-input-group nzSearch [nzSuffix]="suffixIcon" class="search-input">
+                <input type="text" nz-input placeholder="Search patients, device ID" [(ngModel)]="searchTerm"
+                    (ngModelChange)="onSearchChange()" />
+            </nz-input-group>
+            <ng-template #suffixIcon>
+                <span nz-icon nzType="search"></span>
+            </ng-template>
+        </div>
+    </div>
+
+    <nz-table #deviceTable [nzData]="filteredDevices" nzBordered [nzFrontPagination]="false">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Patient's Name</th>
+                <th>Hospital Number</th>
+                <th>Device ID</th>
+                <th>Device Type</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let device of filteredDevices; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ device.name }}</td>
+                <td>{{ device.hospitalNumber }}</td>
+                <td>{{ device.deviceId }}</td>
+                <td>
+                    <button nz-button nzShape="round" class="type-btn" [ngClass]="{
+              'bp-type': device.type === 'Blood Pressure',
+              'gluco-type': device.type === 'Glucometer'
+            }">
+                        <span nz-icon [nzType]="device.type === 'Blood Pressure' ? 'heart' : 'droplet'"></span>
+                        {{ device.type }}
+                    </button>
+                </td>
+                <td>{{ device.createdAt }}</td>
+                <td class="actions">
+                    <button nz-button nzType="default" class="edit-btn" (click)="editDevice(device)">
+                        <span nz-icon nzType="edit"></span> Edit
+                    </button>
+                    <button nz-button nzType="default" class="view-btn" (click)="viewDevice(device)">
+                        <span nz-icon nzType="eye"></span> View Vitals
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </nz-table>
+
+    <div class="footer-row">
+        <span>Showing {{ filteredDevices.length }} of {{ totalDevices }}</span>
+        <nz-pagination [nzPageIndex]="pageIndex" [nzTotal]="totalDevices" [nzPageSize]="pageSize"
+            (nzPageIndexChange)="onPageChange($event)"></nz-pagination>
+    </div>
+</div>
