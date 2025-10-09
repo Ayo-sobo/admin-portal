@@ -2,13 +2,16 @@
     <div class="page-header">
         <div class="header-content">
             <h1 class="page-title">All Users</h1>
-            <p class="page-description">View users in a single table. Use the action button to manage assignments and
-                account status.</p>
+            <p class="page-description">
+                View users in a single table. Use the action button to manage assignments and
+                account status.
+            </p>
         </div>
-        <div class="user-count">
-            <span nz-icon nzType="team" nzTheme="outline"></span>
-            <span>Users: {{ totalUsers }}</span>
-        </div>
+
+        <button nz-button nzType="primary" class="link-btn" (click)="openLinkDevices()">
+            <span nz-icon nzType="link"></span>
+            Link Devices
+        </button>
     </div>
 
     <div class="directory-card">
@@ -62,7 +65,7 @@
                     <td>
                         <div class="user-cell">
                             <nz-avatar [nzText]="getUserInitials(user.name)"
-                                [ngStyle]="{'background-color': getAvatarColor(user.name)}"
+                                [ngStyle]="{ 'background-color': getAvatarColor(user.name) }"
                                 nzSize="default"></nz-avatar>
                             <span class="user-name">{{ user.name }}</span>
                         </div>
@@ -80,10 +83,6 @@
                         </button>
                         <nz-dropdown-menu #menu="nzDropdownMenu">
                             <ul nz-menu>
-                                <li nz-menu-item (click)="onUserAction('devices', user)">
-                                    <span nz-icon nzType="eye" nzTheme="outline"></span>
-                                    See Assigned Devices
-                                </li>
                                 <li nz-menu-item (click)="onUserAction('edit', user)">
                                     <span nz-icon nzType="edit" nzTheme="outline"></span>
                                     Edit User
@@ -115,4 +114,7 @@
             </tbody>
         </nz-table>
     </div>
+
+    <app-link-devices-dialog [(isVisible)]="isLinkDevicesVisible" [users]="allUsers"
+        (devicesAssigned)="handleDevicesAssigned($event)"></app-link-devices-dialog>
 </div>

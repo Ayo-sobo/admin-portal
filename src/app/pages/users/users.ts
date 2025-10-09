@@ -10,6 +10,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { LinkDevicesDialog } from '../link-devices-dialog/link-devices-dialog';
+import { NzMessageService } from 'ng-zorro-antd/message';
 
 interface User {
   id: number;
@@ -18,6 +20,11 @@ interface User {
   role: string;
   status: string;
   avatar?: string;
+}
+
+interface Device {
+  id: number;
+  name: string;
 }
 
 @Component({
@@ -34,8 +41,8 @@ interface User {
     NzDropDownModule,
     NzButtonModule,
     NzBadgeModule,
+    LinkDevicesDialog,
   ],
-
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })
@@ -44,14 +51,11 @@ export class Users {
   selectedRole: string = 'all';
   selectedStatus: string = 'all';
 
+  isLinkDevicesVisible = false;
+  selectedUserForDevices: User | null = null;
+
   allUsers: User[] = [
-    {
-      id: 1,
-      name: 'Alex Admin',
-      email: 'alex.admin@clinic.com',
-      role: 'Admin',
-      status: 'Active',
-    },
+    { id: 1, name: 'Alex Admin', email: 'alex.admin@clinic.com', role: 'Admin', status: 'Active' },
     {
       id: 2,
       name: 'Morgan Manager',
@@ -103,6 +107,8 @@ export class Users {
     },
   ];
 
+  constructor(private message: NzMessageService) {}
+
   get filteredUsers(): User[] {
     return this.allUsers.filter((user) => {
       const matchesSearch =
@@ -146,6 +152,39 @@ export class Users {
   }
 
   onUserAction(action: string, user: User): void {
-    console.log(`${action} action for user:`, user);
+    switch (action) {
+      case 'edit':
+        this.message.info(`Edit user: ${user.name}`);
+        break;
+      case 'view':
+        this.message.info(`View details for: ${user.name}`);
+        break;
+      case 'suspend':
+        this.message.warning(`Suspend user: ${user.name}`);
+        break;
+      case 'activate':
+        this.message.success(`Activate user: ${user.name}`);
+        break;
+      case 'delete':
+        this.message.error(`Delete user: ${user.name}`);
+        break;
+      default:
+        console.log(`${action} action for user:`, user);
+    }
+  }
+
+  openLinkDevices(): void {
+    this.selectedUserForDevices = null;
+    this.isLinkDevicesVisible = true;
+  }
+
+  handleDevicesAssigned(data: { userId: number; devices: Device[] }): void {
+    const user = this.allUsers.find((u) => u.id === data.userId);
+    if (user) {
+      this.message.success(
+        `Successfully assigned ${data.devices.length} device(s) to ${user.name}`
+      );
+    }
+    console.log('Devices assigned:', data);
   }
 }

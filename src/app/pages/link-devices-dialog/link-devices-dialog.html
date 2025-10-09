@@ -1,0 +1,118 @@
+<nz-modal [(nzVisible)]="isVisible" nzTitle="Link Devices to User" [nzWidth]="920" [nzFooter]="modalFooter"
+    (nzOnCancel)="handleCancel()" nzClassName="link-devices-modal">
+    <ng-container *nzModalContent>
+        <div class="dialog-content">
+            <div class="user-selection">
+                <label class="section-label">Select Registered User</label>
+                <nz-select [(ngModel)]="selectedUserId" nzPlaceHolder="Choose user..." nzShowSearch
+                    [nzSuffixIcon]="userIcon" class="user-select">
+                    <nz-option *ngFor="let user of users" [nzValue]="user.id" [nzLabel]="user.name"></nz-option>
+                </nz-select>
+                <p class="helper-text">Start by selecting the account to link devices to.</p>
+            </div>
+
+            <div class="find-devices-section">
+                <div class="section-header">
+                    <div>
+                        <h3 class="section-title">Find Devices</h3>
+                        <p class="section-description">
+                            Search by device ID or name. Add multiple devices to the selection below.
+                        </p>
+                    </div>
+                    <button nz-button nzType="link" class="add-to-list-btn">
+                        <span nz-icon nzType="plus"></span>
+                        Add to list
+                    </button>
+                </div>
+
+                <div class="search-filter-row">
+                    <nz-input-group [nzPrefix]="searchIcon" class="search-input">
+                        <input type="text" nz-input placeholder="Search devices" [(ngModel)]="searchText" />
+                    </nz-input-group>
+                    <nz-select [(ngModel)]="selectedType" class="type-filter" nzPlaceHolder="Type: All">
+                        <nz-option nzValue="all" nzLabel="Type: All"></nz-option>
+                        <nz-option nzValue="Blood Pressure" nzLabel="Blood Pressure"></nz-option>
+                        <nz-option nzValue="Glucometer" nzLabel="Glucometer"></nz-option>
+                    </nz-select>
+                </div>
+
+                <nz-table #deviceTable [nzData]="filteredDevices" [nzShowPagination]="false" [nzSize]="'small'"
+                    class="devices-table">
+                    <thead>
+                        <tr>
+                            <th nzWidth="50px">#</th>
+                            <th>Device Name</th>
+                            <th>Device ID</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th nzWidth="100px">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let device of deviceTable.data; let i = index">
+                            <td>{{ i + 1 }}</td>
+                            <td>{{ device.name }}</td>
+                            <td>{{ device.deviceId }}</td>
+                            <td>
+                                <nz-tag class="type-tag">
+                                    <span nz-icon [nzType]="getDeviceIcon(device.type)"></span>
+                                    {{ device.type }}
+                                </nz-tag>
+                            </td>
+                            <td>
+                                <span class="status-text" [class.in-use]="device.status === 'In Use'">
+                                    {{ device.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <button *ngIf="device.status === 'Available' && !isDeviceSelected(device)" nz-button
+                                    nzType="link" nzSize="small" (click)="selectDevice(device)" class="select-btn">
+                                    <span nz-icon nzType="plus"></span>
+                                    Select
+                                </button>
+                                <button *ngIf="device.status === 'In Use'" nz-button nzType="link" nzSize="small"
+                                    [disabled]="true" class="unavail-btn">
+                                    <span nz-icon nzType="close-circle"></span>
+                                    Unavail
+                                </button>
+                                <span *ngIf="isDeviceSelected(device)" class="selected-badge">
+                                    Selected
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </nz-table>
+            </div>
+
+            <div class="selected-devices-section" *ngIf="selectedDevices.length > 0">
+                <label class="section-label">Selected Devices</label>
+                <div class="selected-devices-list">
+                    <nz-tag *ngFor="let device of selectedDevices" nzMode="closeable" (nzOnClose)="removeDevice(device)"
+                        class="device-chip">
+                        # {{ device.deviceId }} • {{ device.name }}
+                    </nz-tag>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-template #modalFooter>
+        <button nz-button nzType="default" (click)="clearSelection()" [disabled]="selectedDevices.length === 0">
+            <span nz-icon nzType="delete"></span>
+            Clear
+        </button>
+        <button nz-button nzType="default" (click)="handleCancel()">Cancel</button>
+        <button nz-button nzType="primary" (click)="assignDevices()"
+            [disabled]="!selectedUserId || selectedDevices.length === 0">
+            <span nz-icon nzType="link"></span>
+            Assign Devices
+        </button>
+    </ng-template>
+</nz-modal>
+
+<ng-template #searchIcon>
+    <span nz-icon nzType="search"></span>
+</ng-template>
+<ng-template #userIcon>
+    <span nz-icon nzType="user"></span>
+</ng-template>
