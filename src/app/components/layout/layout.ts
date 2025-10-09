@@ -13,4 +13,8 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 })
 export class Layout {
   isCollapsed = false;
+
+  logout(): void {
+    console.log('Logout clicked');
+  }
 }

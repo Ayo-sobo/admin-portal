@@ -24,6 +24,13 @@
                 </a>
             </li>
         </ul>
+
+        <div class="logout-container">
+            <button nz-button nzDanger nzBlock (click)="logout()">
+                <span nz-icon nzType="logout"></span>
+                <span *ngIf="!isCollapsed">Logout</span>
+            </button>
+        </div>
     </nz-sider>
 
     <nz-layout>

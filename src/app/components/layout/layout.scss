@@ -9,6 +9,19 @@ nz-sider {
   top: 0;
   left: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  ::ng-deep .ant-layout-sider-children {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  ul[nz-menu] {
+    flex: 1;
+    overflow-y: auto;
+  }
 }
 
 .logo {
@@ -25,6 +38,26 @@ nz-sider {
   color: #fff;
   margin: 0;
   font-weight: 600;
+}
+
+.logout-container {
+  padding: 16px;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  button {
+    height: 40px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: tomato;
+
+    span[nz-icon] {
+      font-size: 24px;
+    }
+  }
 }
 
 nz-header {
