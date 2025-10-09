@@ -1,1 +1,124 @@
-<p>home works!</p>
+<div class="home-container">
+    <div class="header">
+        <h1>Home</h1>
+        <nz-avatar nzIcon="user" class="user-avatar"></nz-avatar>
+    </div>
+
+    <div class="analytics-section">
+        <h2>Analytics Overview</h2>
+        <p class="subtitle">Key statistics across patients, measurements, users, and account statuses.</p>
+
+        <div nz-row [nzGutter]="16" class="metrics-row">
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
+                <nz-card class="metric-card patients-card">
+                    <div class="card-content">
+                        <p class="card-label">Patients</p>
+                        <h3 class="card-value">{{ topMetrics.patients.total | number }}</h3>
+                        <p class="card-detail">Linked to devices: {{ topMetrics.patients.linkedDevices }}</p>
+                    </div>
+                </nz-card>
+            </div>
+
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
+                <nz-card class="metric-card bp-card">
+                    <div class="card-content">
+                        <p class="card-label">Today's BP Readings</p>
+                        <h3 class="card-value">{{ topMetrics.bpReadings.total }}</h3>
+                        <p class="card-detail">Avg today: {{ topMetrics.bpReadings.avgPerPatient }} / patient</p>
+                    </div>
+                </nz-card>
+            </div>
+
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
+                <nz-card class="metric-card glucose-card">
+                    <div class="card-content">
+                        <p class="card-label">Today's Glucose Readings</p>
+                        <h3 class="card-value">{{ topMetrics.glucoseReadings.total }}</h3>
+                        <p class="card-detail">Avg today: {{ topMetrics.glucoseReadings.avgPerPatient }} / patient</p>
+                    </div>
+                </nz-card>
+            </div>
+
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
+                <nz-card class="metric-card users-card">
+                    <div class="card-content">
+                        <p class="card-label">Users</p>
+                        <h3 class="card-value">{{ topMetrics.users.total }}</h3>
+                        <p class="card-detail">Active: {{ topMetrics.users.active }}</p>
+                    </div>
+                </nz-card>
+            </div>
+        </div>
+
+        <div nz-row [nzGutter]="16" class="bottom-section">
+            <div nz-col [nzXs]="24" [nzLg]="12">
+                <nz-card class="status-card">
+                    <div class="card-header">
+                        <h3>Account Status</h3>
+                        <div class="status-tags">
+                            <nz-tag class="status-tag">Active: {{ accountStatus.active }}</nz-tag>
+                            <nz-tag class="status-tag">Inactive: {{ accountStatus.inactive }}</nz-tag>
+                            <nz-tag class="status-tag">Suspended: {{ accountStatus.suspended }}</nz-tag>
+                        </div>
+                    </div>
+
+                    <div nz-row [nzGutter]="16" class="status-cards-row">
+                        <div nz-col [nzSpan]="8">
+                            <div class="status-detail-card active-card">
+                                <h4>Active Accounts</h4>
+                                <p class="status-value">{{ accountStatus.active }}</p>
+                                <p class="status-desc">{{ activeAccountsPercentage }}% of total patients</p>
+                            </div>
+                        </div>
+
+                        <div nz-col [nzSpan]="8">
+                            <div class="status-detail-card inactive-card">
+                                <h4>Inactive Accounts</h4>
+                                <p class="status-value">{{ accountStatus.inactive }}</p>
+                                <p class="status-desc">No readings in 30 days</p>
+                            </div>
+                        </div>
+
+                        <div nz-col [nzSpan]="8">
+                            <div class="status-detail-card suspended-card">
+                                <h4>Suspended Accounts</h4>
+                                <p class="status-value">{{ accountStatus.suspended }}</p>
+                                <p class="status-desc">Policy or verification issues</p>
+                            </div>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+
+            <div nz-col [nzXs]="24" [nzLg]="12">
+                <nz-card class="measurements-card">
+                    <div class="card-header">
+                        <h3>Today's Measurements</h3>
+                        <div class="measurement-tags">
+                            <span class="measurement-tag">BP: {{ todayMeasurements.bp }}</span>
+                            <span class="measurement-tag">Glucose: {{ todayMeasurements.glucose }}</span>
+                        </div>
+                    </div>
+
+                    <div nz-row [nzGutter]="16" class="measurements-row">
+                        <div nz-col [nzSpan]="12">
+                            <div class="measurement-detail-card bp-detail-card">
+                                <h4>Total BP Readings</h4>
+                                <p class="measurement-value">{{ todayMeasurements.bp }}</p>
+                                <p class="measurement-desc">All patients</p>
+                            </div>
+                        </div>
+
+                        <div nz-col [nzSpan]="12">
+                            <div class="measurement-detail-card glucose-detail-card">
+                                <h4>Total Glucose Readings</h4>
+                                <p class="measurement-value">{{ todayMeasurements.glucose }}</p>
+                                <p class="measurement-desc">All patients</p>
+                            </div>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+        </div>
+    </div>
+</div>
