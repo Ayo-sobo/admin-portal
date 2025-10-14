@@ -19,25 +19,24 @@
                             Search by device ID or name. Add multiple devices to the selection below.
                         </p>
                     </div>
-                    <button nz-button nzType="link" class="add-to-list-btn">
-                        <span nz-icon nzType="plus"></span>
-                        Add to list
-                    </button>
                 </div>
 
                 <div class="search-filter-row">
                     <nz-input-group [nzPrefix]="searchIcon" class="search-input">
-                        <input type="text" nz-input placeholder="Search devices" [(ngModel)]="searchText" />
+                        <input type="text" nz-input placeholder="Search devices" [(ngModel)]="searchText"
+                            (ngModelChange)="onSearchChange()" />
                     </nz-input-group>
-                    <nz-select [(ngModel)]="selectedType" class="type-filter" nzPlaceHolder="Type: All">
+                    <nz-select [(ngModel)]="selectedType" (ngModelChange)="onTypeChange($event)" class="type-filter"
+                        nzPlaceHolder="Type: All">
                         <nz-option nzValue="all" nzLabel="Type: All"></nz-option>
-                        <nz-option nzValue="Blood Pressure" nzLabel="Blood Pressure"></nz-option>
-                        <nz-option nzValue="Glucometer" nzLabel="Glucometer"></nz-option>
+                        <nz-option nzValue="BP_MONITOR" nzLabel="Blood Pressure"></nz-option>
+                        <nz-option nzValue="GLUCOMETER" nzLabel="Glucometer"></nz-option>
+                        <nz-option nzValue="PARAMONITOR" nzLabel="All-in-One"></nz-option>
                     </nz-select>
                 </div>
 
                 <nz-table #deviceTable [nzData]="filteredDevices" [nzShowPagination]="false" [nzSize]="'small'"
-                    class="devices-table">
+                    [nzLoading]="isLoading" class="devices-table">
                     <thead>
                         <tr>
                             <th nzWidth="50px">#</th>
@@ -73,7 +72,7 @@
                                 <button *ngIf="device.status === 'In Use'" nz-button nzType="link" nzSize="small"
                                     [disabled]="true" class="unavail-btn">
                                     <span nz-icon nzType="close-circle"></span>
-                                    Unavail
+                                    Unavailable
                                 </button>
                                 <span *ngIf="isDeviceSelected(device)" class="selected-badge">
                                     Selected
