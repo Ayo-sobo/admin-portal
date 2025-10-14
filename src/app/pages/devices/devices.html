@@ -9,15 +9,15 @@
     <div class="filters-card">
         <div class="filters-row">
             <nz-select [(ngModel)]="selectedDeviceType" (ngModelChange)="onDeviceTypeChange($event)" nzAllowClear
-                nzPlaceHolder="Select Device Type" class="filter-select">
+                nzPlaceHolder="Select Device Type" class="filter-select" [nzDisabled]="isLoading">
                 <nz-option nzLabel="All" nzValue="All"></nz-option>
-                <nz-option nzLabel="Blood Pressure" nzValue="Blood Pressure"></nz-option>
-                <nz-option nzLabel="Glucometer" nzValue="Glucometer"></nz-option>
+                <nz-option nzLabel="Blood Pressure" nzValue="BP_MONITOR"></nz-option>
+                <nz-option nzLabel="Glucometer" nzValue="GLUCOMETER"></nz-option>
             </nz-select>
 
             <nz-input-group nzSearch [nzSuffix]="suffixIcon" class="search-input">
-                <input type="text" nz-input placeholder="Search patients, device ID" [(ngModel)]="searchTerm"
-                    (ngModelChange)="onSearchChange()" />
+                <input type="text" nz-input placeholder="Search patients, device ID, hospital number"
+                    [formControl]="searchControl" [disabled]="isLoading" />
             </nz-input-group>
             <ng-template #suffixIcon>
                 <span nz-icon nzType="search"></span>
@@ -25,7 +25,8 @@
         </div>
     </div>
 
-    <nz-table #deviceTable [nzData]="filteredDevices" nzBordered [nzFrontPagination]="false">
+    <nz-table #deviceTable [nzData]="filteredDevices" [nzLoading]="isLoading" nzBordered [nzFrontPagination]="false"
+        [nzShowPagination]="false">
         <thead>
             <tr>
                 <th>No.</th>
@@ -39,27 +40,36 @@
         </thead>
         <tbody>
             <tr *ngFor="let device of filteredDevices; let i = index">
-                <td>{{ i + 1 }}</td>
-                <td>{{ device.name }}</td>
-                <td>{{ device.hospitalNumber }}</td>
-                <td>{{ device.deviceId }}</td>
+                <td>{{ (pageIndex - 1) * pageSize + i + 1 }}</td>
+                <td>{{ device.user_name || 'N/A' }}</td>
+                <td>{{ device.user_identity || 'N/A' }}</td>
+                <td>{{ device.device_id || 'N/A' }}</td>
                 <td>
                     <button nz-button nzShape="round" class="type-btn" [ngClass]="{
-              'bp-type': device.type === 'Blood Pressure',
-              'gluco-type': device.type === 'Glucometer'
-            }">
-                        <span nz-icon [nzType]="device.type === 'Blood Pressure' ? 'heart' : 'droplet'"></span>
-                        {{ device.type }}
+                            'bp-type': (device.device_type || '').toLowerCase().includes('bp') || (device.device_type || '').toLowerCase().includes('blood'),
+                            'gluco-type': (device.device_type || '').toLowerCase().includes('glu') || (device.device_type || '').toLowerCase().includes('glucose')
+                        }">
+                        <span nz-icon [nzType]="getDeviceIcon(device.device_type || '')">
+                        </span>
+                        {{ getDeviceTypeDisplay(device.device_type || '') }}
                     </button>
                 </td>
-                <td>{{ device.createdAt }}</td>
+                <td>{{ device.created_at | date: 'yyyy-MM-dd' }}</td>
                 <td class="actions">
-                    <button nz-button nzType="default" class="edit-btn" (click)="editDevice(device)">
+                    <button nz-button nzType="default" class="edit-btn" (click)="editDevice(device)"
+                        [disabled]="isLoading">
                         <span nz-icon nzType="edit"></span> Edit
                     </button>
-                    <button nz-button nzType="default" class="view-btn" (click)="viewDevice(device)">
+                    <button nz-button nzType="default" class="view-btn" (click)="viewVitals(device)"
+                        [disabled]="isLoading">
                         <span nz-icon nzType="eye"></span> View Vitals
                     </button>
+                </td>
+            </tr>
+            <tr *ngIf="!isLoading && filteredDevices.length === 0">
+                <td colspan="7" style="text-align: center; padding: 40px;">
+                    <span nz-icon nzType="inbox" style="font-size: 48px; color: #d9d9d9;"></span>
+                    <p style="margin-top: 16px; color: #999;">No devices found</p>
                 </td>
             </tr>
         </tbody>
@@ -68,6 +78,7 @@
     <div class="footer-row">
         <span>Showing {{ filteredDevices.length }} of {{ totalDevices }}</span>
         <nz-pagination [nzPageIndex]="pageIndex" [nzTotal]="totalDevices" [nzPageSize]="pageSize"
-            (nzPageIndexChange)="onPageChange($event)"></nz-pagination>
+            [nzDisabled]="isLoading" (nzPageIndexChange)="onPageChange($event)">
+        </nz-pagination>
     </div>
 </div>

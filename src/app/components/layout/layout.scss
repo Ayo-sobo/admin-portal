@@ -63,7 +63,7 @@ nz-sider {
 
 nz-header {
   background: #fff;
-  padding: 0 24px;
+  padding: 0 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
@@ -93,8 +93,8 @@ nz-header {
 }
 
 nz-content {
-  margin: 24px;
-  height: calc(100vh - 64px - 64px);
+  margin: 14px;
+  height: calc(100vh - 60px - 60px);
   overflow-y: auto;
   overflow-x: hidden;
 }

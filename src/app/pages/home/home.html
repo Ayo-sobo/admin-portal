@@ -12,7 +12,7 @@
             <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
                 <nz-card class="metric-card patients-card">
                     <div class="card-content">
-                        <p class="card-label">Patients</p>
+                        <p class="card-label">Total Number of BP-Device Registered</p>
                         <h3 class="card-value">{{ topMetrics.patients.total | number }}</h3>
                         <p class="card-detail">Linked to devices: {{ topMetrics.patients.linkedDevices }}</p>
                     </div>
@@ -22,7 +22,7 @@
             <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
                 <nz-card class="metric-card bp-card">
                     <div class="card-content">
-                        <p class="card-label">Today's BP Readings</p>
+                        <p class="card-label">Total Number of Glucometer Registered.</p>
                         <h3 class="card-value">{{ topMetrics.bpReadings.total }}</h3>
                         <p class="card-detail">Avg today: {{ topMetrics.bpReadings.avgPerPatient }} / patient</p>
                     </div>
@@ -32,7 +32,7 @@
             <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
                 <nz-card class="metric-card glucose-card">
                     <div class="card-content">
-                        <p class="card-label">Today's Glucose Readings</p>
+                        <p class="card-label">Today's BP Readings</p>
                         <h3 class="card-value">{{ topMetrics.glucoseReadings.total }}</h3>
                         <p class="card-detail">Avg today: {{ topMetrics.glucoseReadings.avgPerPatient }} / patient</p>
                     </div>
@@ -42,7 +42,7 @@
             <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
                 <nz-card class="metric-card users-card">
                     <div class="card-content">
-                        <p class="card-label">Users</p>
+                        <p class="card-label">Today's Glucometer Readings</p>
                         <h3 class="card-value">{{ topMetrics.users.total }}</h3>
                         <p class="card-detail">Active: {{ topMetrics.users.active }}</p>
                     </div>
