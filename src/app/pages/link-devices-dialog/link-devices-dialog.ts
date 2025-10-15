@@ -123,7 +123,6 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
       return this.performFilteredSearch(searchTerm, deviceType);
     }
 
-    // Default: Fetch all devices
     return this.deviceService
       .getDevices({ page: 0, limit: 10000, orderBy: 'createdAt', order: 'DESC' })
       .pipe(
@@ -140,9 +139,7 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
       return of(cached.devices);
     }
 
-    // Only type filter (no search)
     if (!searchTerm && deviceType !== 'all') {
-      // Map UI filter values to actual device types in the database
       const actualDeviceType = this.mapFilterToDeviceType(deviceType);
 
       return this.deviceService.getDevicesByType(actualDeviceType, 0, 10000).pipe(
@@ -155,13 +152,11 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
       );
     }
 
-    // Search with optional type filter
     if (searchTerm) {
       return this.deviceService.searchDevices(searchTerm, 10000).pipe(
         map((devices: Device[]) => {
           let mapped = this.mapDevices(devices);
 
-          // Apply type filter to search results
           if (deviceType !== 'all') {
             mapped = mapped.filter((d) => this.matchesDeviceType(d.type, deviceType));
           }
@@ -197,7 +192,6 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
     const deviceTypeLower = (deviceType || '').toLowerCase();
     const filterLower = filterType.toLowerCase();
 
-    // Handle Blood Pressure filter
     if (filterLower.includes('blood') || filterLower.includes('pressure')) {
       return (
         deviceTypeLower.includes('bp') ||
@@ -207,7 +201,6 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
       );
     }
 
-    // Handle Glucometer filter
     if (filterLower.includes('glu')) {
       return (
         deviceTypeLower.includes('glu') ||
@@ -216,7 +209,6 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
       );
     }
 
-    // Handle Paramonitor filter
     if (filterLower.includes('param')) {
       return (
         deviceTypeLower.includes('param') ||
@@ -225,7 +217,6 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
       );
     }
 
-    // Exact match fallback
     return deviceTypeLower === filterLower;
   }
 
@@ -282,12 +273,10 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
     return 0;
   }
 
-  /** Called when search input changes */
   public onSearchChange(): void {
     this.searchTerm$.next(this.searchText.trim());
   }
 
-  /** Called when type filter changes */
   public onTypeChange(newType: string): void {
     this.selectedType = newType || 'all';
     this.deviceType$.next(newType || 'all');
