@@ -127,6 +127,7 @@ import { DeviceService, Device } from '../device.service';
         padding: 20px;
         width: 100%;
         max-width: 450px;
+        margin: 0 auto;
       }
 
       .dialog-title {
@@ -162,6 +163,56 @@ import { DeviceService, Device } from '../device.service';
       textarea {
         resize: vertical;
         min-height: 60px;
+      }
+
+      /* ===== MOBILE RESPONSIVE STYLES ===== */
+      @media (max-width: 768px) {
+        .edit-device-dialog {
+          padding: 16px;
+          max-width: 100%;
+        }
+
+        .dialog-title {
+          font-size: 18px;
+          margin-bottom: 16px;
+        }
+
+        form {
+          gap: 10px;
+        }
+
+        nz-form-item {
+          margin-bottom: 10px;
+        }
+
+        .dialog-actions {
+          flex-direction: column-reverse;
+          justify-content: center;
+          align-items: stretch;
+          gap: 8px;
+          margin-top: 20px;
+        }
+
+        button[nz-button] {
+          width: 100%;
+          min-width: unset;
+          height: 40px;
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .dialog-title {
+          font-size: 16px;
+        }
+
+        .edit-device-dialog {
+          padding: 12px;
+        }
+
+        button[nz-button] {
+          font-size: 13px;
+        }
       }
     `,
   ],

@@ -8,6 +8,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 10px;
 
     h2 {
       font-size: 20px;
@@ -29,6 +31,7 @@
       font-weight: 500;
       color: #fff;
       border-radius: 20px;
+      white-space: nowrap;
     }
   }
 
@@ -87,17 +90,21 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    overflow-x: auto;
 
     th {
       background: #e9f3ff;
       font-weight: 600;
       color: #0b1a33;
+      white-space: nowrap;
     }
 
     td {
       vertical-align: middle;
       font-size: 15px;
       color: #1c1c1c;
+      white-space: nowrap;
     }
 
     .type-btn {
@@ -122,6 +129,7 @@
     .actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
 
       .edit-btn,
       .view-btn {
@@ -146,9 +154,121 @@
     margin-top: 12px;
     font-size: 14px;
     color: #6b7b93;
+    flex-wrap: wrap;
+    gap: 10px;
 
     nz-pagination {
       margin: 0;
+    }
+  }
+
+  @media (max-width: 992px) {
+    padding: 16px;
+
+    .header-section {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+
+      h2 {
+        font-size: 18px;
+      }
+
+      .add-btn {
+        align-self: flex-end;
+        height: 36px;
+        font-size: 14px;
+      }
+    }
+
+    .filters-card {
+      padding: 14px;
+
+      .filters-row {
+        flex-direction: column;
+        align-items: stretch;
+
+        nz-select,
+        .search-input {
+          width: 100%;
+          min-width: 100%;
+        }
+
+        button[nz-button] {
+          width: 100%;
+        }
+      }
+    }
+
+    nz-table {
+      font-size: 14px;
+
+      th,
+      td {
+        font-size: 14px;
+      }
+
+      .actions {
+        justify-content: center;
+      }
+    }
+
+    .footer-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 12px;
+
+    .header-section {
+      h2 {
+        font-size: 16px;
+      }
+
+      p {
+        font-size: 13px;
+      }
+
+      .add-btn {
+        width: 100%;
+        font-size: 13px;
+      }
+    }
+
+    .filters-card {
+      padding: 12px;
+
+      .filters-row {
+        gap: 10px;
+
+        nz-select,
+        .search-input,
+        button[nz-button] {
+          width: 100%;
+        }
+      }
+    }
+
+    nz-table {
+      th,
+      td {
+        font-size: 13px;
+        padding: 8px;
+      }
+
+      .type-btn {
+        font-size: 12px;
+      }
+    }
+
+    .footer-row {
+      flex-direction: column;
+      text-align: center;
+      font-size: 12px;
     }
   }
 }

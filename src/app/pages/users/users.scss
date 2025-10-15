@@ -123,6 +123,10 @@
 
 ::ng-deep {
   .ant-table {
+    .ant-table-container {
+      overflow-x: auto;
+    }
+
     .ant-table-thead > tr > th {
       background-color: #f0f5ff;
       color: #262626;
@@ -232,6 +236,96 @@
 
     .link-btn {
       align-self: flex-start;
+    }
+  }
+
+  .directory-card {
+    margin: 0 16px 24px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 16px 16px 0;
+
+    .header-content {
+      .page-title {
+        font-size: 20px;
+      }
+
+      .page-description {
+        font-size: 13px;
+      }
+    }
+
+    .link-btn {
+      height: 36px;
+      font-size: 13px;
+      padding: 0 16px;
+    }
+  }
+
+  .directory-card {
+    padding: 16px;
+  }
+
+  ::ng-deep .ant-table {
+    font-size: 13px;
+
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 10px 12px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 12px 12px 0;
+    gap: 12px;
+
+    .header-content {
+      .page-title {
+        font-size: 18px;
+      }
+
+      .page-description {
+        font-size: 12px;
+      }
+    }
+
+    .link-btn {
+      font-size: 12px;
+      padding: 0 14px;
+      height: 34px;
+
+      span[nz-icon] {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .directory-card {
+    margin: 0 10px 20px;
+    padding: 14px;
+
+    .directory-title {
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+  }
+
+  .filter-section {
+    gap: 12px;
+  }
+
+  ::ng-deep .ant-table {
+    font-size: 12px;
+
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 8px 10px;
     }
   }
 }

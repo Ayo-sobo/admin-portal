@@ -1,9 +1,10 @@
 <nz-layout class="layout">
-    <nz-sider nzCollapsible [(nzCollapsed)]="isCollapsed" nzBreakpoint="lg">
+    <nz-sider [ngClass]="{ open: isMobileMenuOpen }" nzCollapsible [nzCollapsed]="isCollapsed" nzBreakpoint="lg">
         <div class="logo">
             <h3 *ngIf="!isCollapsed">Admin Portal</h3>
             <h3 *ngIf="isCollapsed">AP</h3>
         </div>
+
         <ul nz-menu nzTheme="dark" nzMode="inline">
             <li nz-menu-item nzMatchRouter>
                 <a routerLink="/home">
@@ -33,12 +34,12 @@
         </div>
     </nz-sider>
 
+    <div class="sidemenu-overlay" [ngClass]="{ show: isMobileMenuOpen }" (click)="closeMobileMenu()"></div>
+
     <nz-layout>
         <nz-header>
             <div class="header-content">
-                <span nz-icon class="trigger" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"
-                    (click)="isCollapsed = !isCollapsed">
-                </span>
+                <span nz-icon class="trigger" nzType="menu" (click)="toggleMobileMenu()"></span>
                 <h2>Dashboard</h2>
             </div>
         </nz-header>
