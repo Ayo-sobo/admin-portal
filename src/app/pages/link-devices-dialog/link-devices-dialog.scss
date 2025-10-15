@@ -1,5 +1,7 @@
 .dialog-content {
   padding: 8px 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .section-label {
@@ -35,6 +37,8 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
 
     .section-title {
       font-size: 15px;
@@ -52,6 +56,8 @@
     .add-to-list-btn {
       color: #1890ff;
       padding: 0;
+      font-size: 13px;
+      white-space: nowrap;
     }
   }
 
@@ -59,19 +65,23 @@
     display: flex;
     gap: 12px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 
     .search-input {
       flex: 1;
+      min-width: 180px;
     }
 
     .type-filter {
       width: 150px;
+      min-width: 120px;
     }
   }
 
   .devices-table {
     background: white;
     border-radius: 6px;
+    overflow-x: auto;
 
     .type-tag {
       border: none;
@@ -80,6 +90,7 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      font-size: 13px;
     }
 
     .status-text {
@@ -94,11 +105,13 @@
     .select-btn {
       color: #1890ff;
       padding: 0;
+      font-size: 13px;
     }
 
     .unavail-btn {
       color: #d9d9d9;
       padding: 0;
+      font-size: 13px;
     }
 
     .selected-badge {
@@ -123,6 +136,97 @@
       color: #0050b3;
       padding: 4px 12px;
       font-size: 12px;
+      border-radius: 4px;
+      word-break: break-word;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .find-devices-section {
+    padding: 12px;
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .add-to-list-btn {
+        align-self: flex-end;
+        margin-top: 6px;
+      }
+    }
+
+    .search-filter-row {
+      flex-direction: column;
+      gap: 10px;
+
+      .type-filter {
+        width: 100%;
+      }
+
+      .search-input {
+        width: 100%;
+      }
+    }
+
+    .devices-table {
+      font-size: 13px;
+
+      .type-tag {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .selected-devices-section {
+    .device-chip {
+      font-size: 12px;
+      padding: 3px 10px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .find-devices-section {
+    padding: 10px;
+
+    .section-header {
+      .section-title {
+        font-size: 14px;
+      }
+
+      .add-to-list-btn {
+        font-size: 12px;
+      }
+    }
+
+    .search-filter-row {
+      gap: 6px;
+    }
+
+    .devices-table {
+      font-size: 12px;
+
+      .status-text,
+      .selected-badge {
+        font-size: 11px;
+      }
+
+      .select-btn,
+      .unavail-btn {
+        font-size: 11px;
+      }
+    }
+  }
+
+  .user-selection {
+    .helper-text {
+      font-size: 11px;
+    }
+  }
+
+  .selected-devices-section .device-chip {
+    font-size: 11px;
+    padding: 3px 8px;
   }
 }

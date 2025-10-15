@@ -9,6 +9,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
 
     h1 {
       font-size: 24px;
@@ -189,6 +191,70 @@
   }
 }
 
+@media (max-width: 992px) {
+  .home-container {
+    padding: 20px;
+
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+
+    .analytics-section {
+      h2 {
+        font-size: 24px;
+      }
+
+      .subtitle {
+        font-size: 13px;
+      }
+
+      .metrics-row .metric-card {
+        ::ng-deep .ant-card-body {
+          padding: 18px;
+        }
+
+        .card-content {
+          .card-value {
+            font-size: 26px;
+          }
+
+          .card-label {
+            font-size: 13px;
+          }
+        }
+      }
+
+      .bottom-section {
+        .card-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+
+          h3 {
+            font-size: 18px;
+          }
+        }
+
+        .status-detail-card,
+        .measurement-detail-card {
+          padding: 16px;
+
+          .status-value,
+          .measurement-value {
+            font-size: 26px;
+          }
+        }
+      }
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .home-container {
     padding: 16px;
@@ -199,13 +265,28 @@
 
     .analytics-section {
       h2 {
-        font-size: 24px;
+        font-size: 22px;
+      }
+
+      .metrics-row {
+        .metric-card {
+          margin-bottom: 12px;
+        }
       }
 
       .bottom-section {
         .card-header {
           flex-direction: column;
           align-items: flex-start;
+          gap: 8px;
+        }
+
+        .status-cards-row,
+        .measurements-row {
+          [nz-col] {
+            width: 100%;
+            margin-bottom: 12px;
+          }
         }
       }
     }
@@ -213,11 +294,63 @@
 }
 
 @media (max-width: 576px) {
-  .analytics-section .bottom-section {
-    .status-cards-row,
-    .measurements-row {
-      [nz-col] {
-        margin-bottom: 12px;
+  .home-container {
+    padding: 12px;
+
+    .header {
+      h1 {
+        font-size: 18px;
+      }
+    }
+
+    .analytics-section {
+      h2 {
+        font-size: 20px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+      }
+
+      .metrics-row .metric-card {
+        ::ng-deep .ant-card-body {
+          padding: 14px;
+        }
+
+        .card-content {
+          .card-value {
+            font-size: 22px;
+          }
+
+          .card-label,
+          .card-detail {
+            font-size: 12px;
+          }
+        }
+      }
+
+      .bottom-section {
+        .status-cards-row,
+        .measurements-row {
+          [nz-col] {
+            margin-bottom: 10px;
+          }
+
+          .status-detail-card,
+          .measurement-detail-card {
+            padding: 14px;
+
+            .status-value,
+            .measurement-value {
+              font-size: 22px;
+            }
+
+            .status-desc,
+            .measurement-desc {
+              font-size: 12px;
+            }
+          }
+        }
       }
     }
   }

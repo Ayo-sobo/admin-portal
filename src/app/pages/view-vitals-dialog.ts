@@ -135,26 +135,43 @@ type Vital = BPVital | GlucoseVital;
         max-height: 80vh;
         display: flex;
         flex-direction: column;
+        background: #fff;
       }
+
       .dialog-header {
         padding: 20px 24px;
         border-bottom: 1px solid #f0f0f0;
         background: #fafafa;
       }
+
       .header-content {
         display: flex;
         align-items: center;
         gap: 12px;
+        flex-wrap: wrap;
       }
+
       .device-icon {
         font-size: 32px;
         color: #1890ff;
       }
+
+      .device-info {
+        font-size: 13px;
+        color: #8c8c8c;
+        margin: 0;
+      }
+
       .dialog-body {
         padding: 24px;
         overflow-y: auto;
         flex: 1;
       }
+
+      .chart-section {
+        margin-bottom: 24px;
+      }
+
       .chart-container {
         background: #fff;
         padding: 16px;
@@ -162,23 +179,34 @@ type Vital = BPVital | GlucoseVital;
         border: 1px solid #f0f0f0;
         height: 320px;
       }
+
       .vitals-table {
         background: #fff;
         border-radius: 8px;
         border: 1px solid #f0f0f0;
+        overflow-x: auto;
       }
+
+      .vitals-table table {
+        width: 100%;
+        min-width: 600px;
+      }
+
       .high {
         color: #ff4d4f;
         font-weight: 600;
       }
+
       .low {
         color: #faad14;
         font-weight: 600;
       }
+
       .very-high {
         color: #722ed1;
         font-weight: 700;
       }
+
       .loading-container,
       .empty-container {
         display: flex;
@@ -187,13 +215,107 @@ type Vital = BPVital | GlucoseVital;
         justify-content: center;
         padding: 60px 24px;
         gap: 16px;
+        text-align: center;
       }
+
       .dialog-footer {
         padding: 16px 24px;
         border-top: 1px solid #f0f0f0;
         display: flex;
         justify-content: flex-end;
         gap: 8px;
+        background: #fafafa;
+      }
+
+      /* ========= MOBILE RESPONSIVE STYLES ========= */
+      @media (max-width: 768px) {
+        .dialog-header {
+          padding: 16px;
+        }
+
+        .device-icon {
+          font-size: 26px;
+        }
+
+        .header-content h3 {
+          font-size: 16px;
+        }
+
+        .device-info {
+          font-size: 12px;
+        }
+
+        .dialog-body {
+          padding: 16px;
+        }
+
+        .chart-container {
+          height: 260px;
+          padding: 12px;
+        }
+
+        .chart-section h4,
+        .table-section h4 {
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+
+        .vitals-table {
+          font-size: 13px;
+          border-radius: 6px;
+        }
+
+        .vitals-table table {
+          min-width: 520px;
+        }
+
+        .dialog-footer {
+          flex-direction: column-reverse;
+          align-items: stretch;
+          gap: 10px;
+          padding: 12px 16px;
+        }
+
+        .dialog-footer button {
+          width: 100%;
+          height: 38px;
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .dialog-header {
+          padding: 12px;
+        }
+
+        .device-icon {
+          font-size: 22px;
+        }
+
+        .header-content h3 {
+          font-size: 15px;
+        }
+
+        .dialog-body {
+          padding: 12px;
+        }
+
+        .chart-container {
+          height: 220px;
+          padding: 10px;
+        }
+
+        .vitals-table {
+          font-size: 12px;
+        }
+
+        .vitals-table table {
+          min-width: 450px;
+        }
+
+        .dialog-footer button {
+          font-size: 13px;
+        }
       }
     `,
   ],

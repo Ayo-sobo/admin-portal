@@ -32,12 +32,12 @@ nz-sider {
   background: rgba(255, 255, 255, 0.2);
   margin: 16px;
   border-radius: 6px;
-}
 
-.logo h3 {
-  color: #fff;
-  margin: 0;
-  font-weight: 600;
+  h3 {
+    color: #fff;
+    margin: 0;
+    font-weight: 600;
+  }
 }
 
 .logout-container {
@@ -55,6 +55,7 @@ nz-sider {
     gap: 10px;
     color: tomato;
     cursor: pointer;
+
     span[nz-icon] {
       font-size: 28px;
     }
@@ -74,22 +75,22 @@ nz-header {
   display: flex;
   align-items: center;
   gap: 16px;
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+  }
 }
 
 .trigger {
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
   transition: color 0.3s;
-}
 
-.trigger:hover {
-  color: #1890ff;
-}
-
-.header-content h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
+  &:hover {
+    color: #1890ff;
+  }
 }
 
 nz-content {
@@ -113,4 +114,101 @@ nz-footer {
   height: 64px;
   line-height: 64px;
   border-top: 1px solid #e8e8e8;
+}
+
+@media (max-width: 992px) {
+  nz-sider {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 240px;
+    z-index: 1000;
+    background: #001529;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    opacity: 0;
+
+    &.open {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    ul[nz-menu] {
+      padding-bottom: 60px;
+    }
+  }
+
+  .sidemenu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 999;
+    display: none;
+
+    &.show {
+      display: block;
+    }
+  }
+
+  nz-header {
+    padding: 0 10px;
+  }
+
+  .header-content {
+    gap: 10px;
+
+    h2 {
+      font-size: 18px;
+    }
+  }
+
+  nz-content {
+    margin: 10px;
+    height: auto;
+  }
+
+  .inner-content {
+    padding: 16px;
+  }
+
+  nz-footer {
+    font-size: 13px;
+    height: auto;
+    line-height: normal;
+    padding: 10px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .logo {
+    margin: 8px;
+    height: 50px;
+
+    h3 {
+      font-size: 16px;
+    }
+  }
+
+  .logout-container {
+    padding: 12px;
+
+    button {
+      height: 36px;
+      font-size: 14px;
+
+      span[nz-icon] {
+        font-size: 22px;
+      }
+    }
+  }
+
+  .header-content h2 {
+    font-size: 16px;
+  }
+
+  .inner-content {
+    padding: 12px;
+    border-radius: 6px;
+  }
 }
