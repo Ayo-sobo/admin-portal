@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export interface DeviceFilterPayload {
@@ -35,6 +35,8 @@ export interface Device {
   user_email?: string;
   user_phone?: string;
   note?: string;
+  customer_status?: string;
+  device_monitor_id?: number | null;
 }
 
 export interface VitalSign {
@@ -61,12 +63,42 @@ export interface VitalsResponse {
   };
 }
 
+export interface DeviceUser {
+  id: number;
+  device_name: string;
+  user_identity: string;
+  user_name: string;
+  user_phone?: string | null;
+  user_email?: string | null;
+  device_id: string;
+  device_type: string;
+  customer_status?: string;
+  note?: string;
+  device_monitor_id: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DeviceMonitor {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+  monitor_type: 'INDIVIDUAL' | 'ORGANIZATION';
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  password?: string;
+  device_users: DeviceUser[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class DeviceService {
   private apiUrl = 'https://nexus.drsavealife.com/device';
-  //   private vitalsUrl = 'https://nexus.drsavealife.com/vitals';
+  private monitorsUrl = 'https://nexus.drsavealife.com/device-monitors/find';
 
   constructor(private http: HttpClient) {}
 
@@ -112,6 +144,13 @@ export class DeviceService {
     return this.http.delete<any>(`${this.apiUrl}/${deviceId}`);
   }
 
+  assignDevicesToMonitor(monitorId: number, deviceUserIds: number[]): Observable<any[]> {
+    const requests = deviceUserIds.map((deviceUserId) =>
+      this.http.post(`${this.apiUrl}/update?id=${deviceUserId}`, { device_monitor_id: monitorId })
+    );
+    return forkJoin(requests);
+  }
+
   getDeviceStatistics(): Observable<{
     bpMonitorsCount: number;
     glucometersCount: number;
@@ -126,7 +165,6 @@ export class DeviceService {
     }).pipe(
       map((response) => {
         const devices = response.list || [];
-
         const normalized = (s: any) => (s ? String(s).toLowerCase() : '');
 
         const bpMonitorsCount = devices.filter((d: any) => {
@@ -206,6 +244,20 @@ export class DeviceService {
     return this.http
       .post<{ list: VitalSign[] }>(url, requestBody)
       .pipe(map((response) => response.list || []));
+  }
+
+  getDeviceMonitors(): Observable<DeviceMonitor[]> {
+    return this.http.get<DeviceMonitor[]>(this.monitorsUrl).pipe(
+      map((monitors) =>
+        monitors.map((m) => ({
+          ...m,
+          device_users: (m.device_users || []).map((u) => ({
+            ...u,
+            user_name: u.user_name || `${m.first_name} ${m.last_name}`,
+          })),
+        }))
+      )
+    );
   }
 
   private deduplicateDevices(devices: any[]): Device[] {

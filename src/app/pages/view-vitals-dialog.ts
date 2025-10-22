@@ -44,7 +44,21 @@ type Vital = BPVital | GlucoseVital;
         <div class="header-content">
           <span nz-icon [nzType]="getDeviceIcon()" nzTheme="outline" class="device-icon"></span>
           <div>
-            <h3>{{ device.device_name || 'Device Vitals' }}</h3>
+            <h3 class="header-title">
+              {{ device.device_name || 'Device Vitals' }}
+              <span *ngIf="device.user_phone" class="phone-section">
+                <button
+                  nz-button
+                  nzType="link"
+                  class="call-btn"
+                  (click)="callUser(device.user_phone)"
+                  nz-tooltip="Call User"
+                >
+                  <span nz-icon nzType="phone" nzTheme="fill" class="call-icon"></span>
+                  {{ formatPhone(device.user_phone) }}
+                </button>
+              </span>
+            </h3>
             <p class="device-info">
               {{ getDeviceTypeDisplay(device.device_type) }} - {{ device.device_id }}
             </p>
@@ -151,6 +165,36 @@ type Vital = BPVital | GlucoseVital;
         flex-wrap: wrap;
       }
 
+      .header-title {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .phone-section {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .call-btn {
+        padding: 0;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+      }
+
+      .call-icon {
+        color: #1890ff;
+        font-size: 16px;
+        margin-right: 4px;
+      }
+
+      .call-btn:hover .call-icon {
+        color: #40a9ff;
+      }
+
       .device-icon {
         font-size: 32px;
         color: #1890ff;
@@ -227,55 +271,44 @@ type Vital = BPVital | GlucoseVital;
         background: #fafafa;
       }
 
-      /* ========= MOBILE RESPONSIVE STYLES ========= */
       @media (max-width: 768px) {
         .dialog-header {
           padding: 16px;
         }
-
         .device-icon {
           font-size: 26px;
         }
-
         .header-content h3 {
           font-size: 16px;
         }
-
         .device-info {
           font-size: 12px;
         }
-
         .dialog-body {
           padding: 16px;
         }
-
         .chart-container {
           height: 260px;
           padding: 12px;
         }
-
         .chart-section h4,
         .table-section h4 {
           font-size: 14px;
           margin-bottom: 8px;
         }
-
         .vitals-table {
           font-size: 13px;
           border-radius: 6px;
         }
-
         .vitals-table table {
           min-width: 520px;
         }
-
         .dialog-footer {
           flex-direction: column-reverse;
           align-items: stretch;
           gap: 10px;
           padding: 12px 16px;
         }
-
         .dialog-footer button {
           width: 100%;
           height: 38px;
@@ -287,32 +320,25 @@ type Vital = BPVital | GlucoseVital;
         .dialog-header {
           padding: 12px;
         }
-
         .device-icon {
           font-size: 22px;
         }
-
         .header-content h3 {
           font-size: 15px;
         }
-
         .dialog-body {
           padding: 12px;
         }
-
         .chart-container {
           height: 220px;
           padding: 10px;
         }
-
         .vitals-table {
           font-size: 12px;
         }
-
         .vitals-table table {
           min-width: 450px;
         }
-
         .dialog-footer button {
           font-size: 13px;
         }
@@ -549,6 +575,19 @@ export class ViewVitalsDialogComponent implements OnInit {
     if (t.includes('bp') || t.includes('blood')) return 'heart';
     if (t.includes('glu')) return 'experiment';
     return 'dashboard';
+  }
+
+  public formatPhone(phone: string): string {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    return phone;
+  }
+
+  public callUser(phone: string): void {
+    const sanitized = phone.replace(/\D/g, '');
+    window.open(`tel:${sanitized}`, '_self');
   }
 
   public onClose() {
