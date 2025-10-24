@@ -27,11 +27,8 @@
             <div class="filter-item role-filter">
                 <label>Role</label>
                 <nz-select [(ngModel)]="selectedRole" nzPlaceHolder="All roles" nzSuffixIcon="down">
-                    <nz-option nzValue="all" nzLabel="All roles"></nz-option>
-                    <nz-option nzValue="Admin" nzLabel="Admin"></nz-option>
-                    <nz-option nzValue="Manager" nzLabel="Manager"></nz-option>
-                    <nz-option nzValue="Supervisor" nzLabel="Supervisor"></nz-option>
-                    <nz-option nzValue="Operator" nzLabel="Operator"></nz-option>
+                    <nz-option nzValue="INDIVIDUAL" nzLabel="Individual"></nz-option>
+                    <nz-option nzValue="ORGANIZATION" nzLabel="Organization"></nz-option>
                 </nz-select>
             </div>
 
@@ -46,12 +43,14 @@
             </div>
         </div>
 
-        <nz-table #userTable [nzData]="filteredUsers" [nzShowPagination]="false" [nzBordered]="false">
+        <nz-table #userTable [nzData]="filteredUsers" [nzShowPagination]="false" [nzBordered]="false"
+            [nzLoading]="isLoading">
             <thead>
                 <tr>
                     <th>User</th>
                     <th>Email</th>
                     <th>Phone No.</th>
+                    <th>Role</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -113,5 +112,14 @@
     </div>
 
     <app-link-devices-dialog [(isVisible)]="isLinkDevicesVisible" [users]="allUsers"
-        (devicesAssigned)="handleDevicesAssigned($event)"></app-link-devices-dialog>
+        (devicesAssigned)="handleDevicesAssigned($event)">
+    </app-link-devices-dialog>
+
+    <app-edit-monitor-dialog [(isVisible)]="isEditMonitorVisible" [user]="selectedUserForEdit"
+        (monitorUpdated)="handleMonitorUpdated($event)">
+    </app-edit-monitor-dialog>
+
+    <app-view-monitor-details-dialog [(isVisible)]="isViewDetailsVisible" [user]="selectedUserForView"
+        (deviceUnassigned)="handleDeviceUnassigned($event)">
+    </app-view-monitor-details-dialog>
 </div>

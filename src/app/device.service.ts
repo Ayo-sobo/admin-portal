@@ -98,7 +98,9 @@ export interface DeviceMonitor {
 })
 export class DeviceService {
   private apiUrl = 'https://nexus.drsavealife.com/device';
-  private monitorsUrl = 'https://nexus.drsavealife.com/device-monitors/find';
+  private monitorsUrl = 'https://nexus.drsavealife.com/device-monitors';
+  private bloodPressureUrl = 'https://nexus.drsavealife.com/blood-pressure/filter';
+  private glucometerUrl = 'https://nexus.drsavealife.com/glucometer/filter';
 
   constructor(private http: HttpClient) {}
 
@@ -149,6 +151,12 @@ export class DeviceService {
       this.http.post(`${this.apiUrl}/update?id=${deviceUserId}`, { device_monitor_id: monitorId })
     );
     return forkJoin(requests);
+  }
+
+  unassignDeviceFromMonitor(deviceId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, {
+      device_monitor_id: null,
+    });
   }
 
   getDeviceStatistics(): Observable<{
@@ -223,31 +231,29 @@ export class DeviceService {
   }
 
   getBloodPressureVitals(deviceId: string): Observable<VitalSign[]> {
-    const url = 'https://nexus.drsavealife.com/blood-pressure/filter';
     const requestBody = {
       filter: { deviceID: deviceId },
       orderBy: 'id',
       order: 'DESC',
     };
     return this.http
-      .post<{ list: VitalSign[] }>(url, requestBody)
+      .post<{ list: VitalSign[] }>(this.bloodPressureUrl, requestBody)
       .pipe(map((response) => response.list || []));
   }
 
   getGlucometerVitals(deviceId: string): Observable<VitalSign[]> {
-    const url = 'https://nexus.drsavealife.com/glucometer/filter';
     const requestBody = {
       filter: { deviceID: deviceId },
       orderBy: 'id',
       order: 'DESC',
     };
     return this.http
-      .post<{ list: VitalSign[] }>(url, requestBody)
+      .post<{ list: VitalSign[] }>(this.glucometerUrl, requestBody)
       .pipe(map((response) => response.list || []));
   }
 
   getDeviceMonitors(): Observable<DeviceMonitor[]> {
-    return this.http.get<DeviceMonitor[]>(this.monitorsUrl).pipe(
+    return this.http.get<DeviceMonitor[]>(`${this.monitorsUrl}/find`).pipe(
       map((monitors) =>
         monitors.map((m) => ({
           ...m,
@@ -259,6 +265,30 @@ export class DeviceService {
       )
     );
   }
+
+  updateMonitor(monitorId: number, data: any): Observable<DeviceMonitor> {
+    return this.http.patch<DeviceMonitor>(`${this.monitorsUrl}/${monitorId}`, data);
+  }
+
+  deleteMonitor(monitorId: number): Observable<any> {
+    return this.http.delete<any>(`${this.monitorsUrl}/${monitorId}`);
+  }
+
+  getDevicesAssignedToMonitor(monitorId: number): Observable<DeviceUser[]> {
+    return this.getDevices({
+      page: 0,
+      limit: 10000,
+      filter: { device_monitor_id: monitorId },
+      orderBy: 'createdAt',
+      order: 'DESC',
+    }).pipe(map((response) => response.list || []));
+  }
+
+  // unassignDeviceFromMonitor(monitorId: number, deviceId: number): Observable<any> {
+  //   return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, {
+  //     device_monitor_id: null,
+  //   });
+  // }
 
   private deduplicateDevices(devices: any[]): Device[] {
     const uniqueMap = new Map();
