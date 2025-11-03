@@ -10,7 +10,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { DeviceService, Device, DeviceResponse } from '../../device.service';
-import { Subject, BehaviorSubject, combineLatest, of, forkJoin } from 'rxjs';
+import { Subject, BehaviorSubject, combineLatest, of } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
@@ -29,6 +29,7 @@ interface DeviceRow {
   hospitalNumber?: string;
   status: 'Available' | 'In Use';
   raw?: any;
+  relevanceScore?: number;
 }
 
 interface User {
@@ -58,14 +59,14 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
   @Input() isVisible = false;
   @Input() users: User[] = [];
   @Output() isVisibleChange = new EventEmitter<boolean>();
-  @Output() devicesAssigned = new EventEmitter<{ userId: number; devices: DeviceRow[] }>();
+  @Output() devicesAssigned = new EventEmitter<{ userIds: number[]; devices: DeviceRow[] }>();
 
   private destroy$ = new Subject<void>();
   private searchTerm$ = new BehaviorSubject<string>('');
   private deviceType$ = new BehaviorSubject<string>('all');
   private refreshTrigger$ = new BehaviorSubject<boolean>(true);
 
-  selectedUserId: number | null = null;
+  selectedUserIds: number[] = [];
   searchText = '';
   selectedType = 'all';
   selectedDevices: DeviceRow[] = [];
@@ -244,8 +245,8 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
         ...device,
         relevanceScore: this.getTotalRelevanceScore(device, term),
       }))
-      .filter((device) => device.relevanceScore > 0)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore);
+      .filter((device) => (device.relevanceScore || 0) > 0)
+      .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
   }
 
   private getTotalRelevanceScore(device: DeviceRow, term: string): number {
@@ -314,8 +315,8 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
   }
 
   public assignDevices(): void {
-    if (!this.selectedUserId) {
-      this.message.warning('Please select a monitor to assign to.');
+    if (!this.selectedUserIds || this.selectedUserIds.length === 0) {
+      this.message.warning('Please select one or more monitors to assign to.');
       return;
     }
 
@@ -328,15 +329,17 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
     this.isLoading = true;
 
     this.deviceService
-      .assignDevicesToMonitor(this.selectedUserId, deviceIds)
+      .assignDevicesToMonitor(this.selectedUserIds, deviceIds)
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: () => {
           this.devicesAssigned.emit({
-            userId: this.selectedUserId!,
+            userIds: this.selectedUserIds,
             devices: this.selectedDevices,
           });
-          this.message.success(`Assigned ${this.selectedDevices.length} device(s) successfully.`);
+          this.message.success(
+            `Assigned ${this.selectedDevices.length} device(s) to ${this.selectedUserIds.length} monitor(s) successfully.`
+          );
           this.isVisible = false;
           this.isVisibleChange.emit(false);
           setTimeout(() => this.resetDialog(), 200);
@@ -348,7 +351,7 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
   }
 
   public resetDialog(): void {
-    this.selectedUserId = null;
+    this.selectedUserIds = [];
     this.searchText = '';
     this.selectedType = 'all';
     this.selectedDevices = [];

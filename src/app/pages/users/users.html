@@ -112,7 +112,7 @@
     </div>
 
     <app-link-devices-dialog [(isVisible)]="isLinkDevicesVisible" [users]="allUsers"
-        (devicesAssigned)="handleDevicesAssigned($event)">
+        (devicesAssigned)="handleDevicesAssigned($any($event))">
     </app-link-devices-dialog>
 
     <app-edit-monitor-dialog [(isVisible)]="isEditMonitorVisible" [user]="selectedUserForEdit"

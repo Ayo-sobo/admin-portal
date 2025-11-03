@@ -30,6 +30,7 @@ interface LinkedDevice {
   type: string;
   hospitalNumber?: string;
   status: string;
+  device_monitors?: { id: number }[];
 }
 
 @Component({
@@ -63,26 +64,25 @@ interface LinkedDevice {
             <h3 class="section-title">Monitor Information</h3>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">Name:</span>
-                <span class="info-value">{{ user.name }}</span>
+                <span class="info-label">Name:</span><span class="info-value">{{ user.name }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Email:</span>
-                <span class="info-value">{{ user.email }}</span>
+                <span class="info-label">Email:</span
+                ><span class="info-value">{{ user.email }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Phone:</span>
-                <span class="info-value">{{ user.phone }}</span>
+                <span class="info-label">Phone:</span
+                ><span class="info-value">{{ user.phone }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Role:</span>
-                <nz-tag [nzColor]="getRoleColor(user.role)">{{ user.role }}</nz-tag>
+                <span class="info-label">Role:</span
+                ><nz-tag [nzColor]="getRoleColor(user.role)">{{ user.role }}</nz-tag>
               </div>
               <div class="info-item">
                 <span class="info-label">Status:</span>
-                <nz-tag [nzColor]="user.status === 'Active' ? 'success' : 'default'">
-                  {{ user.status }}
-                </nz-tag>
+                <nz-tag [nzColor]="user.status === 'Active' ? 'success' : 'default'">{{
+                  user.status
+                }}</nz-tag>
               </div>
             </div>
           </div>
@@ -141,9 +141,9 @@ interface LinkedDevice {
                     </td>
                     <td>{{ device.hospitalNumber || 'N/A' }}</td>
                     <td>
-                      <nz-tag [nzColor]="device.status === 'In Use' ? 'processing' : 'success'">
-                        {{ device.status }}
-                      </nz-tag>
+                      <nz-tag [nzColor]="device.status === 'In Use' ? 'processing' : 'success'">{{
+                        device.status
+                      }}</nz-tag>
                     </td>
                     <td nzAlign="center">
                       <button
@@ -184,56 +184,43 @@ interface LinkedDevice {
       .monitor-info {
         padding: 8px 0;
       }
-
       .info-section {
         margin-bottom: 16px;
       }
-
       .section-title {
         font-size: 16px;
         font-weight: 600;
         margin-bottom: 16px;
         color: rgba(0, 0, 0, 0.85);
       }
-
       .info-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 16px;
       }
-
       .info-item {
         display: flex;
         align-items: center;
         gap: 8px;
       }
-
       .info-label {
         font-weight: 500;
         color: rgba(0, 0, 0, 0.65);
       }
-
-      .info-value {
-        color: rgba(0, 0, 0, 0.85);
-      }
-
       .devices-section {
         margin-top: 16px;
       }
-
       .section-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
       }
-
       .device-id {
         font-family: 'Courier New', monospace;
         font-size: 12px;
         color: rgba(0, 0, 0, 0.65);
       }
-
       nz-divider {
         margin: 24px 0;
       }
@@ -265,23 +252,22 @@ export class ViewMonitorDetailsDialog implements OnChanges {
   private loadLinkedDevices(): void {
     if (!this.user) return;
     this.isLoading = true;
-
-    this.deviceService.getDevicesAssignedToMonitor(this.user.id).subscribe({
-      next: (devices: any[]) => {
-        this.linkedDevices = devices.map((d) => ({
+    this.deviceService.getMonitorProfile(this.user.id).subscribe({
+      next: (res: any) => {
+        const devices = res?.device_users || [];
+        this.linkedDevices = devices.map((d: any) => ({
           id: d.id,
-          name: d.device_name || d.model || d.name || 'Unknown',
-          deviceId: d.device_id || d.deviceID || d.deviceId || '',
-          type: d.device_type || d.type || 'Unknown',
-          hospitalNumber: d.user_identity || d.hospitalNumber || '',
-          status: d.is_active ? 'In Use' : 'Available',
+          name: d.device_name || 'Unknown',
+          deviceId: d.device_id,
+          type: d.device_type,
+          hospitalNumber: d.user_identity,
+          status: d.customer_status === 'CONTACTED' ? 'In Use' : 'Available',
+          device_monitors: d.device_monitors || [],
         }));
         this.isLoading = false;
       },
-      error: (err) => {
-        console.error('Failed to load linked devices:', err);
+      error: () => {
         this.message.error('Failed to load linked devices');
-        this.linkedDevices = [];
         this.isLoading = false;
       },
     });
@@ -289,12 +275,12 @@ export class ViewMonitorDetailsDialog implements OnChanges {
 
   unassignDevice(device: LinkedDevice): void {
     if (!this.user) return;
-
     this.isUnassigning = true;
+
     const hideMessage = this.message.loading('Unassigning device...', { nzDuration: 0 }).messageId;
 
     this.deviceService
-      .updateDevice(device.id, { device_monitor_id: null })
+      .unassignDeviceFromMonitor(device.id, this.user.id)
       .pipe(
         finalize(() => {
           this.isUnassigning = false;
@@ -302,13 +288,17 @@ export class ViewMonitorDetailsDialog implements OnChanges {
         })
       )
       .subscribe({
-        next: () => {
-          this.message.success(`Device "${device.name}" unassigned successfully`);
-          this.loadLinkedDevices();
-          this.deviceUnassigned.emit(device.id);
+        next: (res) => {
+          if (res?.success || res?.id || res?.device_monitors) {
+            this.message.success(`Device "${device.name}" unassigned successfully`);
+            this.loadLinkedDevices();
+            this.deviceUnassigned.emit(device.id);
+          } else {
+            this.message.warning(`Device unassign request completed, but no changes detected.`);
+          }
         },
         error: (err) => {
-          console.error('Failed to unassign device:', err);
+          console.error('Unassign failed:', err);
           this.message.error('Failed to unassign device. Please try again.');
         },
       });
@@ -316,18 +306,18 @@ export class ViewMonitorDetailsDialog implements OnChanges {
 
   unassignAllDevices(): void {
     if (!this.user || this.linkedDevices.length === 0) return;
-
     this.isUnassigning = true;
-    const deviceIds = this.linkedDevices.map((d) => d.id);
-    const hideMessage = this.message.loading(`Unassigning ${deviceIds.length} device(s)...`, {
-      nzDuration: 0,
-    }).messageId;
 
-    const unassignRequests = deviceIds.map((deviceId) =>
-      this.deviceService.updateDevice(deviceId, { device_monitor_id: null })
+    const hideMessage = this.message.loading(
+      `Unassigning ${this.linkedDevices.length} device(s)...`,
+      { nzDuration: 0 }
+    ).messageId;
+
+    const requests = this.linkedDevices.map((device) =>
+      this.deviceService.unassignDeviceFromMonitor(device.id, this.user!.id)
     );
 
-    forkJoin(unassignRequests)
+    forkJoin(requests)
       .pipe(
         finalize(() => {
           this.isUnassigning = false;
@@ -336,12 +326,11 @@ export class ViewMonitorDetailsDialog implements OnChanges {
       )
       .subscribe({
         next: () => {
-          this.message.success(`Successfully unassigned ${deviceIds.length} device(s)`);
-          this.devicesUnassigned.emit(deviceIds);
+          this.message.success(`Successfully unassigned ${this.linkedDevices.length} device(s)`);
+          this.devicesUnassigned.emit(this.linkedDevices.map((d) => d.id));
           this.loadLinkedDevices();
         },
-        error: (err) => {
-          console.error('Failed to unassign devices:', err);
+        error: () => {
           this.message.error('Failed to unassign some devices. Please try again.');
           this.loadLinkedDevices();
         },

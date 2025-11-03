@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 export interface DeviceFilterPayload {
   page?: number;
@@ -37,6 +37,7 @@ export interface Device {
   note?: string;
   customer_status?: string;
   device_monitor_id?: number | null;
+  device_monitors?: { id: number }[];
 }
 
 export interface VitalSign {
@@ -114,7 +115,6 @@ export class DeviceService {
       ...(payload.searchString && { searchString: payload.searchString }),
       ...(payload.searchField && { searchField: payload.searchField }),
     };
-
     return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody);
   }
 
@@ -126,12 +126,14 @@ export class DeviceService {
       orderBy: 'createdAt',
       order: 'DESC',
     };
-
     return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody);
   }
 
   getDeviceById(deviceId: number): Observable<Device> {
-    return this.http.get<Device>(`${this.apiUrl}/${deviceId}`);
+    const requestBody = { filter: { id: deviceId }, limit: 1 };
+    return this.http
+      .post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody)
+      .pipe(map((res) => res.list?.[0]));
   }
 
   registerDevice(device: Partial<Device>): Observable<any> {
@@ -146,17 +148,44 @@ export class DeviceService {
     return this.http.delete<any>(`${this.apiUrl}/${deviceId}`);
   }
 
-  assignDevicesToMonitor(monitorId: number, deviceUserIds: number[]): Observable<any[]> {
-    const requests = deviceUserIds.map((deviceUserId) =>
-      this.http.post(`${this.apiUrl}/update?id=${deviceUserId}`, { device_monitor_id: monitorId })
+  assignDevicesToMonitor(monitorIds: number[], deviceIds: number[]): Observable<any> {
+    const requests = deviceIds.map((deviceId) =>
+      this.getDeviceById(deviceId).pipe(
+        switchMap((device) => {
+          const existing = Array.isArray(device?.device_monitors)
+            ? device.device_monitors.map((m) => m.id)
+            : [];
+          const updatedIds = Array.from(new Set([...existing, ...monitorIds]));
+          const device_monitors = updatedIds.map((id) => ({ id }));
+          return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors });
+        })
+      )
     );
     return forkJoin(requests);
   }
 
-  unassignDeviceFromMonitor(deviceId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, {
-      device_monitor_id: null,
-    });
+  unassignDeviceFromMonitor(deviceId: number, monitorIdToRemove: number): Observable<any> {
+    return this.getDeviceById(deviceId).pipe(
+      switchMap((device) => {
+        const currentMonitors = Array.isArray(device?.device_monitors)
+          ? device.device_monitors
+          : [];
+        const filteredMonitors = currentMonitors.filter(
+          (monitor) => monitor.id !== monitorIdToRemove
+        );
+        const device_monitors = filteredMonitors.map((m) => ({ id: m.id }));
+        return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors });
+      })
+    );
+  }
+
+  setDeviceMonitorsForDevice(deviceId: number, monitorIds: number[]): Observable<any> {
+    const device_monitors = monitorIds.map((id) => ({ id }));
+    return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors });
+  }
+
+  removeMonitorFromDevice(deviceId: number, monitorIdToRemove: number): Observable<any> {
+    return this.unassignDeviceFromMonitor(deviceId, monitorIdToRemove);
   }
 
   getDeviceStatistics(): Observable<{
@@ -174,27 +203,15 @@ export class DeviceService {
       map((response) => {
         const devices = response.list || [];
         const normalized = (s: any) => (s ? String(s).toLowerCase() : '');
-
-        const bpMonitorsCount = devices.filter((d: any) => {
-          const t = normalized(d.device_type);
-          return t.includes('bp') || t.includes('bp_monitor') || t.includes('blood');
-        }).length;
-
-        const glucometersCount = devices.filter((d: any) => {
-          const t = normalized(d.device_type);
-          return t.includes('glu') || t.includes('glucose') || t.includes('glucometer');
-        }).length;
-
-        const allInOneParamonitorsCount = devices.filter((d: any) => {
-          const t = normalized(d.device_type);
-          return (
-            t.includes('param') ||
-            t.includes('paramonitor') ||
-            t.includes('allinone') ||
-            t.includes('all-in-one')
-          );
-        }).length;
-
+        const bpMonitorsCount = devices.filter((d: any) =>
+          normalized(d.device_type).includes('bp')
+        ).length;
+        const glucometersCount = devices.filter((d: any) =>
+          normalized(d.device_type).includes('glu')
+        ).length;
+        const allInOneParamonitorsCount = devices.filter((d: any) =>
+          normalized(d.device_type).includes('param')
+        ).length;
         return {
           bpMonitorsCount,
           glucometersCount,
@@ -217,7 +234,6 @@ export class DeviceService {
         searchString: searchTerm,
       })
     );
-
     return new Observable((observer) => {
       Promise.all(requests.map((req) => req.toPromise()))
         .then((responses) => {
@@ -231,22 +247,14 @@ export class DeviceService {
   }
 
   getBloodPressureVitals(deviceId: string): Observable<VitalSign[]> {
-    const requestBody = {
-      filter: { deviceID: deviceId },
-      orderBy: 'id',
-      order: 'DESC',
-    };
+    const requestBody = { filter: { deviceID: deviceId }, orderBy: 'id', order: 'DESC' };
     return this.http
       .post<{ list: VitalSign[] }>(this.bloodPressureUrl, requestBody)
       .pipe(map((response) => response.list || []));
   }
 
   getGlucometerVitals(deviceId: string): Observable<VitalSign[]> {
-    const requestBody = {
-      filter: { deviceID: deviceId },
-      orderBy: 'id',
-      order: 'DESC',
-    };
+    const requestBody = { filter: { deviceID: deviceId }, orderBy: 'id', order: 'DESC' };
     return this.http
       .post<{ list: VitalSign[] }>(this.glucometerUrl, requestBody)
       .pipe(map((response) => response.list || []));
@@ -275,20 +283,35 @@ export class DeviceService {
   }
 
   getDevicesAssignedToMonitor(monitorId: number): Observable<DeviceUser[]> {
-    return this.getDevices({
+    const nestedFilterRequest = {
       page: 0,
       limit: 10000,
-      filter: { device_monitor_id: monitorId },
+      filter: { device_monitors: { id: monitorId } },
       orderBy: 'createdAt',
       order: 'DESC',
-    }).pipe(map((response) => response.list || []));
+    };
+    return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, nestedFilterRequest).pipe(
+      switchMap((resp) => {
+        if (resp && resp.list && resp.list.length > 0) return of(resp.list || []);
+        const legacyFilterRequest = {
+          page: 0,
+          limit: 10000,
+          filter: { device_monitor_id: monitorId },
+          orderBy: 'createdAt',
+          order: 'DESC',
+        };
+        return this.http
+          .post<DeviceResponse>(`${this.apiUrl}/filter`, legacyFilterRequest)
+          .pipe(map((r) => r.list || []));
+      })
+    );
   }
 
-  // unassignDeviceFromMonitor(monitorId: number, deviceId: number): Observable<any> {
-  //   return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, {
-  //     device_monitor_id: null,
-  //   });
-  // }
+  getMonitorProfile(userId: number) {
+    return this.http.get(`https://nexus.drsavealife.com/device-monitors/profile`, {
+      params: { userId },
+    });
+  }
 
   private deduplicateDevices(devices: any[]): Device[] {
     const uniqueMap = new Map();
@@ -298,18 +321,9 @@ export class DeviceService {
         !uniqueMap.has(device.id) ||
         new Date(createdAt) > new Date(uniqueMap.get(device.id).created_at)
       ) {
-        uniqueMap.set(device.id, {
-          ...device,
-          created_at: createdAt,
-        });
+        uniqueMap.set(device.id, { ...device, created_at: createdAt });
       }
     });
     return Array.from(uniqueMap.values());
-  }
-
-  private calculateAverage(numbers: number[]): number {
-    if (numbers.length === 0) return 0;
-    const sum = numbers.reduce((acc, val) => acc + val, 0);
-    return Math.round((sum / numbers.length) * 100) / 100;
   }
 }
