@@ -8,6 +8,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { DeviceService, Device, DeviceResponse } from '../../device.service';
 import { Subject, BehaviorSubject, combineLatest, of } from 'rxjs';
 import {
@@ -15,9 +16,9 @@ import {
   distinctUntilChanged,
   takeUntil,
   switchMap,
-  startWith,
   map,
   catchError,
+  finalize,
 } from 'rxjs/operators';
 
 interface DeviceRow {
@@ -28,6 +29,7 @@ interface DeviceRow {
   hospitalNumber?: string;
   status: 'Available' | 'In Use';
   raw?: any;
+  relevanceScore?: number;
 }
 
 interface User {
@@ -57,14 +59,14 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
   @Input() isVisible = false;
   @Input() users: User[] = [];
   @Output() isVisibleChange = new EventEmitter<boolean>();
-  @Output() devicesAssigned = new EventEmitter<{ userId: number; devices: DeviceRow[] }>();
+  @Output() devicesAssigned = new EventEmitter<{ userIds: number[]; devices: DeviceRow[] }>();
 
   private destroy$ = new Subject<void>();
   private searchTerm$ = new BehaviorSubject<string>('');
   private deviceType$ = new BehaviorSubject<string>('all');
   private refreshTrigger$ = new BehaviorSubject<boolean>(true);
 
-  selectedUserId: number | null = null;
+  selectedUserIds: number[] = [];
   searchText = '';
   selectedType = 'all';
   selectedDevices: DeviceRow[] = [];
@@ -76,7 +78,7 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
   private searchCache = new Map<string, { devices: DeviceRow[]; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000;
 
-  constructor(private deviceService: DeviceService) {}
+  constructor(private deviceService: DeviceService, private message: NzMessageService) {}
 
   ngOnInit(): void {
     this.setupDataStream();
@@ -106,8 +108,7 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
           this.filteredDevices = devices.slice(0, 10);
           this.isLoading = false;
         },
-        error: (error) => {
-          console.error('Failed to load devices:', error);
+        error: () => {
           this.allDevices = [];
           this.filteredDevices = [];
           this.isLoading = false;
@@ -244,8 +245,8 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
         ...device,
         relevanceScore: this.getTotalRelevanceScore(device, term),
       }))
-      .filter((device) => device.relevanceScore > 0)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore);
+      .filter((device) => (device.relevanceScore || 0) > 0)
+      .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
   }
 
   private getTotalRelevanceScore(device: DeviceRow, term: string): number {
@@ -314,19 +315,43 @@ export class LinkDevicesDialog implements OnInit, OnDestroy {
   }
 
   public assignDevices(): void {
-    if (this.selectedUserId && this.selectedDevices.length > 0) {
-      this.devicesAssigned.emit({
-        userId: this.selectedUserId,
-        devices: this.selectedDevices,
-      });
-      this.isVisible = false;
-      this.isVisibleChange.emit(false);
-      setTimeout(() => this.resetDialog(), 300);
+    if (!this.selectedUserIds || this.selectedUserIds.length === 0) {
+      this.message.warning('Please select one or more monitors to assign to.');
+      return;
     }
+
+    if (this.selectedDevices.length === 0) {
+      this.message.warning('Please select one or more devices to assign.');
+      return;
+    }
+
+    const deviceIds = this.selectedDevices.map((d) => d.id);
+    this.isLoading = true;
+
+    this.deviceService
+      .assignDevicesToMonitor(this.selectedUserIds, deviceIds)
+      .pipe(finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: () => {
+          this.devicesAssigned.emit({
+            userIds: this.selectedUserIds,
+            devices: this.selectedDevices,
+          });
+          this.message.success(
+            `Assigned ${this.selectedDevices.length} device(s) to ${this.selectedUserIds.length} monitor(s) successfully.`
+          );
+          this.isVisible = false;
+          this.isVisibleChange.emit(false);
+          setTimeout(() => this.resetDialog(), 200);
+        },
+        error: () => {
+          this.message.error('Failed to assign devices. Please try again.');
+        },
+      });
   }
 
   public resetDialog(): void {
-    this.selectedUserId = null;
+    this.selectedUserIds = [];
     this.searchText = '';
     this.selectedType = 'all';
     this.selectedDevices = [];

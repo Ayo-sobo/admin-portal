@@ -360,7 +360,7 @@ export class Devices implements OnInit, OnDestroy {
 
         this.modal.create({
           nzContent: ViewVitalsDialogComponent,
-          nzData: { device, vitalsData },
+          nzData: { device, vitalsData, phone: device.user_phone || null },
           nzFooter: null,
           nzWidth: 900,
           nzClosable: true,

@@ -1,14 +1,16 @@
-<nz-modal [(nzVisible)]="isVisible" nzTitle="Link Devices to User" [nzWidth]="920" [nzFooter]="modalFooter"
+<nz-modal [(nzVisible)]="isVisible" nzTitle="Link Devices to User(s)" [nzWidth]="920" [nzFooter]="modalFooter"
     (nzOnCancel)="handleCancel()" nzClassName="link-devices-modal">
     <ng-container *nzModalContent>
         <div class="dialog-content">
             <div class="user-selection">
-                <label class="section-label">Select Registered User</label>
-                <nz-select [(ngModel)]="selectedUserId" nzPlaceHolder="Choose user..." nzShowSearch
-                    [nzSuffixIcon]="userIcon" class="user-select">
+                <label class="section-label">Select Registered User(s)</label>
+                <nz-select [(ngModel)]="selectedUserIds" nzPlaceHolder="Choose one or more users..." nzShowSearch
+                    nzMode="multiple" [nzSuffixIcon]="userIcon" class="user-select">
                     <nz-option *ngFor="let user of users" [nzValue]="user.id" [nzLabel]="user.name"></nz-option>
                 </nz-select>
-                <p class="helper-text">Start by selecting the account to link devices to.</p>
+                <p class="helper-text">
+                    You can now select multiple users to link these devices to.
+                </p>
             </div>
 
             <div class="find-devices-section">
@@ -16,7 +18,8 @@
                     <div>
                         <h3 class="section-title">Find Devices</h3>
                         <p class="section-description">
-                            Search by device ID or name. Add multiple devices to the selection below.
+                            Search by device ID or name. Add multiple devices to the selection
+                            below.
                         </p>
                     </div>
                 </div>
@@ -102,7 +105,7 @@
         </button>
         <button nz-button nzType="default" (click)="handleCancel()">Cancel</button>
         <button nz-button nzType="primary" (click)="assignDevices()"
-            [disabled]="!selectedUserId || selectedDevices.length === 0">
+            [disabled]="!selectedUserIds.length || selectedDevices.length === 0">
             <span nz-icon nzType="link"></span>
             Assign Devices
         </button>

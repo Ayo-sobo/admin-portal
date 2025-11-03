@@ -165,7 +165,6 @@ import { DeviceService, Device } from '../device.service';
         min-height: 60px;
       }
 
-      /* ===== MOBILE RESPONSIVE STYLES ===== */
       @media (max-width: 768px) {
         .edit-device-dialog {
           padding: 16px;

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -10,13 +10,18 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { LinkDevicesDialog } from '../link-devices-dialog/link-devices-dialog';
+import { EditMonitorDialog } from '../users/edit-monitor-dialog.component';
+import { ViewMonitorDetailsDialog } from '../users/view-monitor-details-dialog.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { DeviceService } from '../../device.service';
 
 interface User {
   id: number;
   name: string;
   email: string;
+  phone: string;
   role: string;
   status: string;
   avatar?: string;
@@ -41,12 +46,15 @@ interface Device {
     NzDropDownModule,
     NzButtonModule,
     NzBadgeModule,
+    NzPopconfirmModule,
     LinkDevicesDialog,
+    EditMonitorDialog,
+    ViewMonitorDetailsDialog,
   ],
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })
-export class Users {
+export class Users implements OnInit {
   searchText: string = '';
   selectedRole: string = 'all';
   selectedStatus: string = 'all';
@@ -54,60 +62,42 @@ export class Users {
   isLinkDevicesVisible = false;
   selectedUserForDevices: User | null = null;
 
-  allUsers: User[] = [
-    { id: 1, name: 'Alex Admin', email: 'alex.admin@clinic.com', role: 'Admin', status: 'Active' },
-    {
-      id: 2,
-      name: 'Morgan Manager',
-      email: 'morgan.manager@clinic.com',
-      role: 'Manager',
-      status: 'Active',
-    },
-    {
-      id: 3,
-      name: 'Priya Supervisor',
-      email: 'priya.supervisor@clinic.com',
-      role: 'Supervisor',
-      status: 'Suspended',
-    },
-    {
-      id: 4,
-      name: 'Diego Operator',
-      email: 'diego.operator@clinic.com',
-      role: 'Operator',
-      status: 'Active',
-    },
-    {
-      id: 5,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@clinic.com',
-      role: 'Manager',
-      status: 'Active',
-    },
-    {
-      id: 6,
-      name: 'Michael Chen',
-      email: 'michael.chen@clinic.com',
-      role: 'Operator',
-      status: 'Inactive',
-    },
-    {
-      id: 7,
-      name: 'Emma Williams',
-      email: 'emma.williams@clinic.com',
-      role: 'Supervisor',
-      status: 'Active',
-    },
-    {
-      id: 8,
-      name: 'James Brown',
-      email: 'james.brown@clinic.com',
-      role: 'Admin',
-      status: 'Active',
-    },
-  ];
+  isEditMonitorVisible = false;
+  selectedUserForEdit: User | null = null;
 
-  constructor(private message: NzMessageService) {}
+  isViewDetailsVisible = false;
+  selectedUserForView: User | null = null;
+
+  allUsers: User[] = [];
+  isLoading = false;
+
+  constructor(private message: NzMessageService, private deviceService: DeviceService) {}
+
+  ngOnInit(): void {
+    this.fetchMonitors();
+  }
+
+  fetchMonitors(): void {
+    this.isLoading = true;
+    this.deviceService.getDeviceMonitors().subscribe({
+      next: (monitors: any[]) => {
+        this.allUsers = monitors.map((m) => ({
+          id: m.id,
+          name: `${m.first_name} ${m.last_name}`.trim(),
+          email: m.email,
+          phone: m.phone || 'N/A',
+          role: m.monitor_type,
+          status: 'Active',
+        }));
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to fetch monitors:', err);
+        this.message.error('Failed to load monitors');
+        this.isLoading = false;
+      },
+    });
+  }
 
   get filteredUsers(): User[] {
     return this.allUsers.filter((user) => {
@@ -154,23 +144,56 @@ export class Users {
   onUserAction(action: string, user: User): void {
     switch (action) {
       case 'edit':
-        this.message.info(`Edit user: ${user.name}`);
+        this.openEditMonitor(user);
         break;
       case 'view':
-        this.message.info(`View details for: ${user.name}`);
+        this.openViewDetails(user);
         break;
       case 'suspend':
-        this.message.warning(`Suspend user: ${user.name}`);
+        this.suspendMonitor(user);
         break;
       case 'activate':
-        this.message.success(`Activate user: ${user.name}`);
+        this.activateMonitor(user);
         break;
       case 'delete':
-        this.message.error(`Delete user: ${user.name}`);
+        this.deleteMonitor(user);
         break;
       default:
-        console.log(`${action} action for user:`, user);
+        console.log(`${action} action for monitor:`, user);
     }
+  }
+
+  openEditMonitor(user: User): void {
+    this.selectedUserForEdit = user;
+    this.isEditMonitorVisible = true;
+  }
+
+  openViewDetails(user: User): void {
+    this.selectedUserForView = user;
+    this.isViewDetailsVisible = true;
+  }
+
+  suspendMonitor(user: User): void {
+    user.status = 'Suspended';
+    this.message.warning(`Suspended: ${user.name}`);
+  }
+
+  activateMonitor(user: User): void {
+    user.status = 'Active';
+    this.message.success(`Activated: ${user.name}`);
+  }
+
+  deleteMonitor(user: User): void {
+    this.deviceService.deleteMonitor(user.id).subscribe({
+      next: () => {
+        this.allUsers = this.allUsers.filter((u) => u.id !== user.id);
+        this.message.success(`Monitor ${user.name} deleted successfully`);
+      },
+      error: (err) => {
+        console.error('Failed to delete monitor:', err);
+        this.message.error('Failed to delete monitor. Please try again.');
+      },
+    });
   }
 
   openLinkDevices(): void {
@@ -186,5 +209,17 @@ export class Users {
       );
     }
     console.log('Devices assigned:', data);
+  }
+
+  handleMonitorUpdated(updatedUser: User): void {
+    const index = this.allUsers.findIndex((u) => u.id === updatedUser.id);
+    if (index !== -1) {
+      this.allUsers[index] = updatedUser;
+      this.allUsers = [...this.allUsers];
+    }
+  }
+
+  handleDeviceUnassigned(deviceId: number): void {
+    console.log('Device unassigned:', deviceId);
   }
 }
