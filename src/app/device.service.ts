@@ -108,7 +108,7 @@ export class DeviceService {
   getDevices(payload: DeviceFilterPayload): Observable<DeviceResponse> {
     const requestBody = {
       page: payload.page || 0,
-      limit: payload.limit || 20,
+      limit: payload.limit || 50,
       filter: payload.filter || {},
       orderBy: payload.orderBy || 'createdAt',
       order: payload.order || 'DESC',
@@ -118,7 +118,7 @@ export class DeviceService {
     return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody);
   }
 
-  getDevicesByType(deviceType: string, page = 0, limit = 20): Observable<DeviceResponse> {
+  getDevicesByType(deviceType: string, page = 0, limit = 50): Observable<DeviceResponse> {
     const requestBody = {
       filter: { device_type: deviceType },
       page,
