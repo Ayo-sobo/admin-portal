@@ -43,8 +43,7 @@
             </div>
         </div>
 
-        <nz-table #userTable [nzData]="filteredUsers" [nzShowPagination]="false" [nzBordered]="false"
-            [nzLoading]="isLoading">
+        <nz-table #userTable [nzData]="filteredUsers" [nzPageSize]="50" [nzBordered]="false" [nzLoading]="isLoading">
             <thead>
                 <tr>
                     <th>User</th>

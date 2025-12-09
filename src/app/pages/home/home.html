@@ -37,19 +37,21 @@
             </div>
 
             <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="8">
-                <nz-card class="metric-card bp-card">
+                <nz-card class="metric-card bp-card clickable-card" (click)="showBPReadings()">
                     <div class="card-content">
                         <p class="card-label">Today's BP Readings</p>
                         <h3 class="card-value">{{ topMetrics.todayBP }}</h3>
+                        <p class="click-hint">Click to view details</p>
                     </div>
                 </nz-card>
             </div>
 
             <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="8">
-                <nz-card class="metric-card glucose-card">
+                <nz-card class="metric-card glucose-card clickable-card" (click)="showGlucoseReadings()">
                     <div class="card-content">
                         <p class="card-label">Today's Glucose Readings</p>
                         <h3 class="card-value">{{ topMetrics.todayGlucose }}</h3>
+                        <p class="click-hint">Click to view details</p>
                     </div>
                 </nz-card>
             </div>
@@ -63,7 +65,6 @@
                         <div class="status-tags">
                             <nz-tag class="status-tag">Active: {{ accountStatus.active }}</nz-tag>
                             <nz-tag class="status-tag">Inactive: {{ accountStatus.inactive }}</nz-tag>
-                            <!-- <nz-tag class="status-tag">Unknown: {{ accountStatus.suspended }}</nz-tag> -->
                         </div>
                     </div>
 
@@ -83,17 +84,66 @@
                                 <p class="status-desc">No activity in 30 days</p>
                             </div>
                         </div>
-
-                        <!-- <div nz-col [nzSpan]="8">
-                            <div class="status-detail-card suspended-card">
-                                <h4>Unknown Devices</h4>
-                                <p class="status-value">{{ accountStatus.suspended }}</p>
-                                <p class="status-desc">Verification pending</p>
-                            </div>
-                        </div> -->
                     </div>
                 </nz-card>
             </div>
         </div>
     </div>
+
+    <nz-modal [(nzVisible)]="isDialogVisible" [nzTitle]="dialogTitle" [nzFooter]="null" [nzWidth]="900"
+        (nzOnCancel)="closeDialog()">
+
+        <ng-container *nzModalContent>
+            <nz-spin [nzSpinning]="dialogLoading">
+                <nz-table #readingsTable [nzData]="readingsData" [nzShowPagination]="false" [nzFrontPagination]="false">
+                    <thead>
+                        <tr>
+                            <th nzWidth="60px">#</th>
+                            <th>Name</th>
+                            <th>Reading</th>
+                            <th>Phone Number</th>
+                            <th>Date/Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let data of readingsTable.data; let i = index">
+                            <td>{{ getStartIndex() + i }}</td>
+                            <td>{{ data.user_name }}</td>
+                            <td [style.color]="data.readingColor" style="font-weight:600">
+                                {{ data.reading }}
+                            </td>
+                            <td>
+                                <ng-container *ngFor="let phone of splitPhones(data.user_phone); let j = index">
+                                    <a [href]="'tel:' + phone">{{ phone }}</a>
+                                    <span *ngIf="j < splitPhones(data.user_phone).length - 1">, </span>
+                                </ng-container>
+                            </td>
+                            <td>{{ data.recorded_at | date: 'medium' }}</td>
+                        </tr>
+                    </tbody>
+                </nz-table>
+
+                <div *ngIf="!dialogLoading && getTotalItems() === 0" class="no-data">
+                    <p>No readings found for today.</p>
+                </div>
+
+                <div class="pagination-controls" *ngIf="!dialogLoading && getTotalItems() > 0">
+                    <div class="pagination-info">
+                        Showing {{ getStartIndex() }} - {{ getEndIndex() }} of {{ getTotalItems() }} entries
+                    </div>
+                    <div class="pagination-buttons">
+                        <button nz-button nzType="default" (click)="prevPage()" [disabled]="currentPage === 0">
+                            <span nz-icon nzType="left" nzTheme="outline"></span>
+                            Previous
+                        </button>
+                        <span class="page-indicator">Page {{ currentPage + 1 }}</span>
+                        <button nz-button nzType="default" (click)="nextPage()" [disabled]="!hasNextPage">
+                            Next
+                            <span nz-icon nzType="right" nzTheme="outline"></span>
+                        </button>
+                    </div>
+                </div>
+            </nz-spin>
+        </ng-container>
+    </nz-modal>
 </div>

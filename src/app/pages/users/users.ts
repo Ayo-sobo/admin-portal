@@ -92,7 +92,6 @@ export class Users implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Failed to fetch monitors:', err);
         this.message.error('Failed to load monitors');
         this.isLoading = false;
       },
@@ -158,8 +157,6 @@ export class Users implements OnInit {
       case 'delete':
         this.deleteMonitor(user);
         break;
-      default:
-        console.log(`${action} action for monitor:`, user);
     }
   }
 
@@ -190,7 +187,6 @@ export class Users implements OnInit {
         this.message.success(`Monitor ${user.name} deleted successfully`);
       },
       error: (err) => {
-        console.error('Failed to delete monitor:', err);
         this.message.error('Failed to delete monitor. Please try again.');
       },
     });
@@ -208,7 +204,6 @@ export class Users implements OnInit {
         `Successfully assigned ${data.devices.length} device(s) to ${user.name}`
       );
     }
-    console.log('Devices assigned:', data);
   }
 
   handleMonitorUpdated(updatedUser: User): void {
@@ -219,7 +214,5 @@ export class Users implements OnInit {
     }
   }
 
-  handleDeviceUnassigned(deviceId: number): void {
-    console.log('Device unassigned:', deviceId);
-  }
+  handleDeviceUnassigned(deviceId: number): void {}
 }
