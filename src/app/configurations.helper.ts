@@ -58,18 +58,14 @@ export class ConfigService {
       );
 
       if (!response?.length) {
-        console.error('❌ Could not find configuration for "sal".');
         return;
       }
 
       const config = response[0];
       this.config = config;
       this.saveConfig(config, this.defaultCode);
-
-      console.log('✅ CONFIG LOADED:', config.hospital.name);
       return config;
-    } catch (error) {
-      console.error(`❌ Error loading config (attempt ${retries + 1}):`, error);
+    } catch {
       if (retries < 3) {
         await new Promise((r) => setTimeout(r, 2000));
         return this.loadConfig(retries + 1);
@@ -110,7 +106,6 @@ export function initializer(
 ): () => Promise<boolean> {
   return async (): Promise<boolean> => {
     if (typeof window === 'undefined') {
-      console.log('⚠️ SSR detected - skipping Keycloak init');
       return true;
     }
 
@@ -118,7 +113,6 @@ export function initializer(
       await configService.loadConfig();
 
       if (!configService.config) {
-        console.warn('⚠️ No config loaded - skipping Keycloak init');
         return true;
       }
 
@@ -137,13 +131,9 @@ export function initializer(
         bearerExcludedUrls: ['/assets', '/configurations/filter'],
       };
 
-      console.log('🔑 Keycloak Init Options:', options);
-
       const initialized = await keycloak.init(options);
-      console.log('✅ Keycloak initialized:', initialized);
       return initialized;
-    } catch (error) {
-      console.error('❌ Keycloak initialization error:', error);
+    } catch {
       return true;
     }
   };
