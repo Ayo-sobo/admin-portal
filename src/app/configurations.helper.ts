@@ -52,7 +52,7 @@ export class ConfigService {
     try {
       const response = await firstValueFrom(
         this.http.post<[SalAppConfig]>(
-          'https://sal-config.apps.savealifetechhub.com/configurations/filter',
+          'https://configuration-manager-service-dunur.ondigitalocean.app/configurations/filter',
           { hospital_sub_domain: this.defaultCode }
         )
       );
