@@ -18,7 +18,7 @@ export class ConfigService {
   constructor(
     private http: HttpClient,
     private message: NzMessageService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     if (isPlatformBrowser(this.platformId)) {
       this.originWithoutProtocol = window.location.origin.replace(/^https?:\/\/|\/$/g, '');
@@ -36,7 +36,7 @@ export class ConfigService {
     localStorage.setItem('sal-config-origin$', this.originWithoutProtocol);
     localStorage.setItem(
       'sal-config-expiry$',
-      new Date(dayjs().add(10, 'minutes').toDate()).getTime().toString()
+      new Date(dayjs().add(10, 'minutes').toDate()).getTime().toString(),
     );
   }
 
@@ -53,8 +53,8 @@ export class ConfigService {
       const response = await firstValueFrom(
         this.http.post<[SalAppConfig]>(
           'https://configuration-manager-service-dunur.ondigitalocean.app/configurations/filter',
-          { hospital_sub_domain: this.defaultCode }
-        )
+          { hospital_sub_domain: this.defaultCode },
+        ),
       );
 
       if (!response?.length) {
@@ -102,7 +102,7 @@ export interface SalAppConfig {
 
 export function initializer(
   keycloak: KeycloakService,
-  configService: ConfigService
+  configService: ConfigService,
 ): () => Promise<boolean> {
   return async (): Promise<boolean> => {
     if (typeof window === 'undefined') {
