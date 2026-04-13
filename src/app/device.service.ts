@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
+import { KeycloakService } from 'keycloak-angular';
+import { environment } from '../environments/environment';
 
 export interface DeviceFilterPayload {
   page?: number;
@@ -98,12 +100,19 @@ export interface DeviceMonitor {
   providedIn: 'root',
 })
 export class DeviceService {
-  private apiUrl = 'https://nexus.drsavealife.com/device';
-  private monitorsUrl = 'https://nexus.drsavealife.com/device-monitors';
-  private bloodPressureUrl = 'https://nexus.drsavealife.com/blood-pressure/filter';
-  private glucometerUrl = 'https://nexus.drsavealife.com/glucometer/filter';
+  private apiUrl = environment.nexusUrl + '/device';
+  private monitorsUrl = environment.nexusUrl + '/device-monitors';
+  private bloodPressureUrl = environment.nexusUrl + '/blood-pressure/filter';
+  private glucometerUrl = environment.nexusUrl + '/glucometer/filter';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private keycloak: KeycloakService) { }
+
+  private getHeaderOptions() {
+    return {
+      'Content-Type': 'application/json',
+      authorization: `Bearer ${this.keycloak.getKeycloakInstance().token}`,
+    };
+  }
 
   getDevices(payload: DeviceFilterPayload): Observable<DeviceResponse> {
     const requestBody = {
@@ -115,10 +124,12 @@ export class DeviceService {
       ...(payload.searchString && { searchString: payload.searchString }),
       ...(payload.searchField && { searchField: payload.searchField }),
     };
-    return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody);
+    return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody, { headers: this.getHeaderOptions() });
   }
 
   getDevicesByType(deviceType: string, page = 0, limit = 50): Observable<DeviceResponse> {
+
+
     const requestBody = {
       filter: { device_type: deviceType },
       page,
@@ -126,26 +137,26 @@ export class DeviceService {
       orderBy: 'createdAt',
       order: 'DESC',
     };
-    return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody);
+    return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody, { headers: this.getHeaderOptions() });
   }
 
   getDeviceById(deviceId: number): Observable<Device> {
     const requestBody = { filter: { id: deviceId }, limit: 1 };
     return this.http
-      .post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody)
+      .post<DeviceResponse>(`${this.apiUrl}/filter`, requestBody, { headers: this.getHeaderOptions() })
       .pipe(map((res) => res.list?.[0]));
   }
 
   registerDevice(device: Partial<Device>): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/register`, device);
+    return this.http.post<any>(`${this.apiUrl}/register`, device, { headers: this.getHeaderOptions() });
   }
 
   updateDevice(deviceId: number, updatePayload: Partial<Device>): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/update?id=${deviceId}`, updatePayload);
+    return this.http.post<any>(`${this.apiUrl}/update?id=${deviceId}`, updatePayload, { headers: this.getHeaderOptions() });
   }
 
   deleteDevice(deviceId: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${deviceId}`);
+    return this.http.delete<any>(`${this.apiUrl}/${deviceId}`, { headers: this.getHeaderOptions() });
   }
 
   assignDevicesToMonitor(monitorIds: number[], deviceIds: number[]): Observable<any> {
@@ -157,7 +168,7 @@ export class DeviceService {
             : [];
           const updatedIds = Array.from(new Set([...existing, ...monitorIds]));
           const device_monitors = updatedIds.map((id) => ({ id }));
-          return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors });
+          return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors }, { headers: this.getHeaderOptions() });
         })
       )
     );
@@ -174,14 +185,14 @@ export class DeviceService {
           (monitor) => monitor.id !== monitorIdToRemove
         );
         const device_monitors = filteredMonitors.map((m) => ({ id: m.id }));
-        return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors });
+        return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors }, { headers: this.getHeaderOptions() });
       })
     );
   }
 
   setDeviceMonitorsForDevice(deviceId: number, monitorIds: number[]): Observable<any> {
     const device_monitors = monitorIds.map((id) => ({ id }));
-    return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors });
+    return this.http.post(`${this.apiUrl}/update?id=${deviceId}`, { device_monitors }, { headers: this.getHeaderOptions() });
   }
 
   removeMonitorFromDevice(deviceId: number, monitorIdToRemove: number): Observable<any> {
@@ -249,19 +260,19 @@ export class DeviceService {
   getBloodPressureVitals(deviceId: string): Observable<VitalSign[]> {
     const requestBody = { filter: { deviceID: deviceId }, orderBy: 'id', order: 'DESC' };
     return this.http
-      .post<{ list: VitalSign[] }>(this.bloodPressureUrl, requestBody)
+      .post<{ list: VitalSign[] }>(this.bloodPressureUrl, requestBody, { headers: this.getHeaderOptions() })
       .pipe(map((response) => response.list || []));
   }
 
   getGlucometerVitals(deviceId: string): Observable<VitalSign[]> {
     const requestBody = { filter: { deviceID: deviceId }, orderBy: 'id', order: 'DESC' };
     return this.http
-      .post<{ list: VitalSign[] }>(this.glucometerUrl, requestBody)
+      .post<{ list: VitalSign[] }>(this.glucometerUrl, requestBody, { headers: this.getHeaderOptions() })
       .pipe(map((response) => response.list || []));
   }
 
   getDeviceMonitors(): Observable<DeviceMonitor[]> {
-    return this.http.get<DeviceMonitor[]>(`${this.monitorsUrl}/find`).pipe(
+    return this.http.get<DeviceMonitor[]>(`${this.monitorsUrl}/find`, { headers: this.getHeaderOptions() }).pipe(
       map((monitors) =>
         monitors.map((m) => ({
           ...m,
@@ -275,11 +286,11 @@ export class DeviceService {
   }
 
   updateMonitor(monitorId: number, data: any): Observable<DeviceMonitor> {
-    return this.http.patch<DeviceMonitor>(`${this.monitorsUrl}/${monitorId}`, data);
+    return this.http.patch<DeviceMonitor>(`${this.monitorsUrl}/${monitorId}`, data, { headers: this.getHeaderOptions() });
   }
 
   deleteMonitor(monitorId: number): Observable<any> {
-    return this.http.delete<any>(`${this.monitorsUrl}/${monitorId}`);
+    return this.http.delete<any>(`${this.monitorsUrl}/${monitorId}`, { headers: this.getHeaderOptions() });
   }
 
   getDevicesAssignedToMonitor(monitorId: number): Observable<DeviceUser[]> {
@@ -290,7 +301,7 @@ export class DeviceService {
       orderBy: 'createdAt',
       order: 'DESC',
     };
-    return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, nestedFilterRequest).pipe(
+    return this.http.post<DeviceResponse>(`${this.apiUrl}/filter`, nestedFilterRequest, { headers: this.getHeaderOptions() }).pipe(
       switchMap((resp) => {
         if (resp && resp.list && resp.list.length > 0) return of(resp.list || []);
         const legacyFilterRequest = {
@@ -301,7 +312,7 @@ export class DeviceService {
           order: 'DESC',
         };
         return this.http
-          .post<DeviceResponse>(`${this.apiUrl}/filter`, legacyFilterRequest)
+          .post<DeviceResponse>(`${this.apiUrl}/filter`, legacyFilterRequest, { headers: this.getHeaderOptions() })
           .pipe(map((r) => r.list || []));
       })
     );
@@ -310,6 +321,7 @@ export class DeviceService {
   getMonitorProfile(userId: number) {
     return this.http.get(`https://nexus.drsavealife.com/device-monitors/profile`, {
       params: { userId },
+      headers: this.getHeaderOptions(),
     });
   }
 

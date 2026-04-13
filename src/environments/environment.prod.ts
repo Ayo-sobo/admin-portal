@@ -9,6 +9,7 @@ const initOptions: InitOptions = {
 };
 
 export const environment = {
+  nexusUrl: 'https://nexus.drsavealife.com',
   production: true,
   baseUrlServiceService: 'https://api.drsavealife.com/v1/service-service',
   emailUrl: 'https://develop.drsavealife.com/v1/mail-service',
