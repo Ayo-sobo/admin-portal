@@ -10,6 +10,8 @@ const initOptions: InitOptions = {
 
 export const environment = {
   production: false,
+  nexusUrl: 'https://nexus.drsavealife.com',
+  // nexusUrl:'http://localhost:8888',
   baseUrlServiceService: 'https://savealifetechhub.com/services-api',
   emailUrl: 'https://savealifetechhub.com/mail-service',
   // emailUrl : `http://localhost:4344`,

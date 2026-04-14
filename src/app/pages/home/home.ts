@@ -13,6 +13,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { DeviceService } from '../../device.service';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, finalize } from 'rxjs';
+import { env } from 'process';
+import { environment } from '../../../environments/environment';
+import { KeycloakService } from 'keycloak-angular';
 
 interface ReadingData {
   user_name: string;
@@ -82,10 +85,16 @@ export class Home implements OnInit {
     glucose: null,
   };
 
-  constructor(private deviceService: DeviceService, private http: HttpClient) {}
+  constructor(private deviceService: DeviceService, private http: HttpClient, private keycloak: KeycloakService) {}
 
   ngOnInit(): void {
     this.loadDeviceStats();
+  }
+  private getHeaderOptions() {
+    return {
+      'Content-Type': 'application/json',
+      authorization: `Bearer ${this.keycloak.getKeycloakInstance().token}`,
+    };
   }
 
   private getTodayDateRange(): DateRange {
@@ -114,16 +123,16 @@ export class Home implements OnInit {
     this.loading = true;
 
     const allDevicesReq = this.deviceService.getDevices({ page: 0, limit: 1 });
-    const bpDevicesReq = this.http.post<any>('https://nexus.drsavealife.com/device/filter', {
+    const bpDevicesReq = this.http.post<any>(`${environment.nexusUrl}/device/filter`, {
       filter: { device_type: 'BP_MONITOR' },
       limit: 1,
       page: 0,
-    });
-    const glucoseDevicesReq = this.http.post<any>('https://nexus.drsavealife.com/device/filter', {
+    }, { headers: this.getHeaderOptions() });
+    const glucoseDevicesReq = this.http.post<any>(`${environment.nexusUrl}/device/filter`, {
       filter: { device_type: 'GLUCOMETER' },
       limit: 1,
       page: 0,
-    });
+    }, { headers: this.getHeaderOptions() });
 
     forkJoin({
       all: allDevicesReq,
@@ -147,13 +156,13 @@ export class Home implements OnInit {
     const READINGS_LIMIT = 500;
 
     const bpRequest = this.http.post<{ list: any[] }>(
-      'https://nexus.drsavealife.com/blood-pressure/filter',
-      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT }
+      `${environment.nexusUrl}/blood-pressure/filter`,
+      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT }, { headers: this.getHeaderOptions() }
     );
 
     const glucoseRequest = this.http.post<{ list: any[] }>(
-      'https://nexus.drsavealife.com/glucometer/filter',
-      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT }
+      `${environment.nexusUrl}/glucometer/filter`,
+      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT }, { headers: this.getHeaderOptions() }
     );
 
     forkJoin({ bp: bpRequest, glucose: glucoseRequest }).subscribe({
@@ -208,8 +217,8 @@ export class Home implements OnInit {
 
     const apiUrl =
       type === 'bp'
-        ? 'https://nexus.drsavealife.com/blood-pressure/filter'
-        : 'https://nexus.drsavealife.com/glucometer/filter';
+        ? `${environment.nexusUrl}/blood-pressure/filter`
+        : `${environment.nexusUrl}/glucometer/filter`;
 
     const requestPayload = {
       filter: {},
