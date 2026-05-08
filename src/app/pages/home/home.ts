@@ -13,7 +13,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { DeviceService } from '../../device.service';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, finalize } from 'rxjs';
-import { env } from 'process';
 import { environment } from '../../../environments/environment';
 import { KeycloakService } from 'keycloak-angular';
 
@@ -85,11 +84,16 @@ export class Home implements OnInit {
     glucose: null,
   };
 
-  constructor(private deviceService: DeviceService, private http: HttpClient, private keycloak: KeycloakService) {}
+  constructor(
+    private deviceService: DeviceService,
+    private http: HttpClient,
+    private keycloak: KeycloakService,
+  ) {}
 
   ngOnInit(): void {
     this.loadDeviceStats();
   }
+
   private getHeaderOptions() {
     return {
       'Content-Type': 'application/json',
@@ -123,22 +127,18 @@ export class Home implements OnInit {
     this.loading = true;
 
     const allDevicesReq = this.deviceService.getDevices({ page: 0, limit: 1 });
-    const bpDevicesReq = this.http.post<any>(`${environment.nexusUrl}/device/filter`, {
-      filter: { device_type: 'BP_MONITOR' },
-      limit: 1,
-      page: 0,
-    }, { headers: this.getHeaderOptions() });
-    const glucoseDevicesReq = this.http.post<any>(`${environment.nexusUrl}/device/filter`, {
-      filter: { device_type: 'GLUCOMETER' },
-      limit: 1,
-      page: 0,
-    }, { headers: this.getHeaderOptions() });
+    const bpDevicesReq = this.http.post<any>(
+      `${environment.nexusUrl}/device/filter`,
+      { filter: { device_type: 'BP_MONITOR' }, limit: 1, page: 0 },
+      { headers: this.getHeaderOptions() },
+    );
+    const glucoseDevicesReq = this.http.post<any>(
+      `${environment.nexusUrl}/device/filter`,
+      { filter: { device_type: 'GLUCOMETER' }, limit: 1, page: 0 },
+      { headers: this.getHeaderOptions() },
+    );
 
-    forkJoin({
-      all: allDevicesReq,
-      bp: bpDevicesReq,
-      glucose: glucoseDevicesReq,
-    })
+    forkJoin({ all: allDevicesReq, bp: bpDevicesReq, glucose: glucoseDevicesReq })
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (res) => {
@@ -157,19 +157,20 @@ export class Home implements OnInit {
 
     const bpRequest = this.http.post<{ list: any[] }>(
       `${environment.nexusUrl}/blood-pressure/filter`,
-      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT }, { headers: this.getHeaderOptions() }
+      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT },
+      { headers: this.getHeaderOptions() },
     );
 
     const glucoseRequest = this.http.post<{ list: any[] }>(
       `${environment.nexusUrl}/glucometer/filter`,
-      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT }, { headers: this.getHeaderOptions() }
+      { filter: {}, orderBy: 'createdAt', order: 'DESC', page: 0, limit: READINGS_LIMIT },
+      { headers: this.getHeaderOptions() },
     );
 
     forkJoin({ bp: bpRequest, glucose: glucoseRequest }).subscribe({
       next: (results) => {
         const todayBP = this.filterListByToday(results.bp.list, dateRange);
         const todayGlucose = this.filterListByToday(results.glucose.list, dateRange);
-
         this.topMetrics.todayBP = todayBP.length;
         this.topMetrics.todayGlucose = todayGlucose.length;
         this.calculateAccountStatus();
@@ -213,7 +214,6 @@ export class Home implements OnInit {
 
     this.dialogLoading = true;
     const dateRange = this.getTodayDateRange();
-    const limit = 500;
 
     const apiUrl =
       type === 'bp'
@@ -225,57 +225,57 @@ export class Home implements OnInit {
       orderBy: 'createdAt',
       order: 'DESC',
       relations: ['device'],
-      limit: limit,
+      limit: 500,
       page: 0,
     };
 
-    this.http.post<{ list: any[] }>(apiUrl, requestPayload).subscribe({
-      next: (response) => {
-        const list = response.list || [];
+    this.http
+      .post<{ list: any[] }>(apiUrl, requestPayload, { headers: this.getHeaderOptions() })
+      .subscribe({
+        next: (response) => {
+          const list = response.list || [];
+          const todayList = this.filterListByToday(list, dateRange);
 
-        const todayList = this.filterListByToday(list, dateRange);
+          const formattedData = todayList.map((r) => {
+            const device = r.device || {};
 
-        const formattedData = todayList.map((r) => {
-          const device = r.device || {};
+            if (type === 'bp') {
+              const s = r.systolic_bp || r.systolic || r.sys || 0;
+              const d = r.diastolic_bp || r.diastolic || r.dia || 0;
+              const p = r.heart_rate || r.pulse || r.pul || 0;
 
-          if (type === 'bp') {
-            const s = r.systolic_bp || r.systolic || r.sys || 0;
-            const d = r.diastolic_bp || r.diastolic || r.dia || 0;
-            const p = r.heart_rate || r.pulse || r.pul || 0;
+              return {
+                user_name: device.user_name || 'N/A',
+                user_phone: device.user_phone || 'N/A',
+                reading: `${s}/${d} (${p} bpm)`,
+                readingColor: this.getBPColor(s, d),
+                recorded_at: r.recorded_at || r.createdAt || r.created_at,
+                systolic: s,
+                diastolic: d,
+              } as ReadingData;
+            }
 
+            const g = Number(r.glucose || r.glucose_level || 0);
             return {
               user_name: device.user_name || 'N/A',
               user_phone: device.user_phone || 'N/A',
-              reading: `${s}/${d} (${p} bpm)`,
-              readingColor: this.getBPColor(s, d),
+              reading: `${g} mg/dL`,
+              readingColor: this.getGlucoseColor(g),
               recorded_at: r.recorded_at || r.createdAt || r.created_at,
-              systolic: s,
-              diastolic: d,
+              glucose_level: g,
             } as ReadingData;
-          }
+          });
 
-          const g = Number(r.glucose || r.glucose_level || 0);
-          return {
-            user_name: device.user_name || 'N/A',
-            user_phone: device.user_phone || 'N/A',
-            reading: `${g} mg/dL`,
-            readingColor: this.getGlucoseColor(g),
-            recorded_at: r.recorded_at || r.createdAt || r.created_at,
-            glucose_level: g,
-          } as ReadingData;
-        });
-
-        this.readingsCache[type] = formattedData;
-        this.allReadingsData = formattedData;
-
-        this.updatePaginatedData();
-        this.dialogLoading = false;
-      },
-      error: (err) => {
-        console.error(`Failed to load ${type} readings`, err);
-        this.dialogLoading = false;
-      },
-    });
+          this.readingsCache[type] = formattedData;
+          this.allReadingsData = formattedData;
+          this.updatePaginatedData();
+          this.dialogLoading = false;
+        },
+        error: (err) => {
+          console.error(`Failed to load ${type} readings`, err);
+          this.dialogLoading = false;
+        },
+      });
   }
 
   updatePaginatedData(): void {
